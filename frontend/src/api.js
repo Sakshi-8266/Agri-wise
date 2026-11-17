@@ -8,6 +8,14 @@ export const DEMO_ACCOUNTS = {
   Admin: { email: 'admin@agriwise.com', password: 'Admin@123', label: 'Platform Administrator', role: 'Admin' }
 };
 
+export const DEMO_PROFILES = {
+  'farmer@agriwise.com': { id: 1, name: 'Ramesh Patel', email: 'farmer@agriwise.com', role: 'Farmer', phone: '+91 98765 43210', preferred_language: 'en', account_status: 'ACTIVE' },
+  'buyer@agriwise.com': { id: 2, name: 'Ananya Sharma', email: 'buyer@agriwise.com', role: 'Buyer', phone: '+91 98765 43211', preferred_language: 'en', account_status: 'ACTIVE' },
+  'delivery@agriwise.com': { id: 3, name: 'Vikram Singh', email: 'delivery@agriwise.com', role: 'Delivery', phone: '+91 98765 43212', preferred_language: 'en', account_status: 'ACTIVE' },
+  'fpo@agriwise.com': { id: 4, name: 'Sanjay Verma', email: 'fpo@agriwise.com', role: 'FPO', phone: '+91 98765 43213', preferred_language: 'en', account_status: 'ACTIVE' },
+  'admin@agriwise.com': { id: 5, name: 'Platform Administrator', email: 'admin@agriwise.com', role: 'Admin', phone: '+91 98765 43214', preferred_language: 'en', account_status: 'ACTIVE' }
+};
+
 export const api = {
   getToken: () => localStorage.getItem('agriwise_token'),
   setToken: (token) => localStorage.setItem('agriwise_token', token),
@@ -36,10 +44,23 @@ export const api = {
       headers['Content-Type'] = 'application/json';
     }
 
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers
-    });
+    let res;
+    try {
+      res = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers
+      });
+    } catch {
+      // If relative API_BASE failed (e.g. dev server proxy issue), try direct backend fallback
+      try {
+        res = await fetch(`http://127.0.0.1:8000/api/v1${endpoint}`, {
+          ...options,
+          headers
+        });
+      } catch {
+        throw new Error('Backend server is unreachable (port 8000). Please start the backend server with `npm run backend` or `npm run dev`.');
+      }
+    }
 
     if (res.status === 401) {
       // Auto logout on expired session
@@ -49,8 +70,8 @@ export const api = {
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({
-        detail: res.status === 502
-          ? 'Bad Gateway (502): The backend API server (port 8000) is unreachable. Please verify the backend service is running.'
+        detail: (res.status === 502 || res.status === 504)
+          ? 'Backend API server (port 8000) is unreachable. Please verify the backend service is running.'
           : res.statusText
       }));
       throw new Error(errData.detail || 'Network error');
@@ -61,13 +82,32 @@ export const api = {
 
   // Auth
   async login(email, password) {
-    const data = await this.request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password })
-    });
-    this.setToken(data.access_token);
-    this.setUser(data.user);
-    return data;
+    try {
+      const data = await this.request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+      this.setToken(data.access_token);
+      this.setUser(data.user);
+      return data;
+    } catch (err) {
+      // Safe offline demo fallback for demo accounts when backend server is offline
+      const normalizedEmail = (email || '').trim().toLowerCase();
+      const demoUser = DEMO_PROFILES[normalizedEmail];
+      if (demoUser && (err.message.includes('unreachable') || err.message.includes('Network') || err.message.includes('fetch') || err.message.includes('502') || err.message.includes('504'))) {
+        console.warn('[AgriWise] Backend is offline. Activating offline demo profile for', demoUser.role);
+        const demoData = {
+          access_token: 'demo-token-' + demoUser.role.toLowerCase(),
+          token_type: 'bearer',
+          user: demoUser,
+          isOfflineDemo: true
+        };
+        this.setToken(demoData.access_token);
+        this.setUser(demoData.user);
+        return demoData;
+      }
+      throw err;
+    }
   },
 
   async register(payload) {

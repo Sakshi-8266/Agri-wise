@@ -28,12 +28,12 @@ export default function AuthModal({ isOpen, onClose, onLoginSuccess, onRoleSwitc
     setAuthError('');
     setLoading(true);
     try {
-      if (onRoleSwitch) {
+      const acc = DEMO_ACCOUNTS[roleKey];
+      const res = await api.login(acc.email, acc.password);
+      if (onLoginSuccess) {
+        onLoginSuccess(res.user);
+      } else if (onRoleSwitch) {
         await onRoleSwitch(roleKey);
-      } else {
-        const acc = DEMO_ACCOUNTS[roleKey];
-        const res = await api.login(acc.email, acc.password);
-        if (onLoginSuccess) onLoginSuccess(res.user);
       }
       onClose();
     } catch (err) {
