@@ -17,6 +17,7 @@ import FpoDashboard from './components/FpoDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import DeliveryDashboard from './components/DeliveryDashboard';
 import AuthModal from './components/AuthModal';
+import ErrorBoundary from './components/ErrorBoundary';
 import { api, DEMO_ACCOUNTS } from './api';
 import { useLanguage } from './i18n/LanguageContext';
 import { 
@@ -230,22 +231,24 @@ export default function App() {
         />
 
         <main style={{ flex: 1, padding: '24px 32px 60px', width: '100%', maxWidth: '1440px', margin: '0 auto' }}>
-          {activeTab === 'overview' && <FarmerDashboard onNavigate={setActiveTab} />}
-          {activeTab === 'farms' && <FarmManagement />}
-          {activeTab === 'crops-recommend' && <CropRecommendationView />}
-          {activeTab === 'disease' && <DiseaseScannerView />}
-          {activeTab === 'weather' && <WeatherCenterView />}
-          {activeTab === 'assistant' && <AgronomyAssistantView />}
-          {activeTab === 'market' && <MarketIntelligenceView />}
-          {activeTab === 'listings' && <FarmerListingsView />}
-          {activeTab === 'orders' && <FarmerOrdersView />}
-          {activeTab === 'marketplace' && <MarketplaceBuyer onNavigate={setActiveTab} />}
-          {activeTab === 'buyer-orders' && <BuyerOrdersView onNavigate={setActiveTab} />}
-          {activeTab === 'fpo' && <FpoDashboard />}
-          {activeTab === 'admin' && <AdminDashboard />}
-          {(activeTab === 'delivery-ops' || activeTab === 'delivery-gps' || activeTab === 'delivery-history') && (
-            <DeliveryDashboard activeSubTab={activeTab} setActiveSubTab={setActiveTab} />
-          )}
+          <ErrorBoundary>
+            {activeTab === 'overview' && <FarmerDashboard onNavigate={setActiveTab} />}
+            {activeTab === 'farms' && <FarmManagement />}
+            {activeTab === 'crops-recommend' && <CropRecommendationView />}
+            {activeTab === 'disease' && <DiseaseScannerView />}
+            {activeTab === 'weather' && <WeatherCenterView />}
+            {activeTab === 'assistant' && <AgronomyAssistantView />}
+            {activeTab === 'market' && <MarketIntelligenceView />}
+            {activeTab === 'listings' && <FarmerListingsView />}
+            {activeTab === 'orders' && <FarmerOrdersView />}
+            {activeTab === 'marketplace' && <MarketplaceBuyer onNavigate={setActiveTab} />}
+            {activeTab === 'buyer-orders' && <BuyerOrdersView onNavigate={setActiveTab} />}
+            {activeTab === 'fpo' && <FpoDashboard />}
+            {activeTab === 'admin' && <AdminDashboard />}
+            {(activeTab === 'delivery-ops' || activeTab === 'delivery-gps' || activeTab === 'delivery-history') && (
+              <DeliveryDashboard activeSubTab={activeTab} setActiveSubTab={setActiveTab} />
+            )}
+          </ErrorBoundary>
         </main>
 
         <footer style={{

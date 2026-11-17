@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bot, User, Send, BookOpen, ShieldCheck, Sparkles, 
   HelpCircle, RefreshCw, MessageSquare, Languages
@@ -24,12 +25,16 @@ export default function AgronomyAssistantView() {
 
   // Set localized greeting when language changes or initially
   useEffect(() => {
+    const region = currentLanguageObj?.region || 'India';
+    const nativeName = currentLanguageObj?.nativeName || 'your regional language';
+    const name = currentLanguageObj?.name || 'English';
+    const greet = greeting || 'Namaste';
     setMessages([
       {
         sender_role: 'assistant',
         content: (
-          `${greeting}! I am Rakshak AI, your dedicated agronomy advisor for ${currentLanguageObj.region}. ` +
-          `Ask me in ${currentLanguageObj.nativeName} (${currentLanguageObj.name}) or English about soil nutrients, crop diseases, irrigation schedules, or MSP rates.`
+          `${greet}! I am Rakshak AI, your dedicated agronomy advisor for ${region}. ` +
+          `Ask me in ${nativeName} (${name}) or English about soil nutrients, crop diseases, irrigation schedules, or MSP rates.`
         ),
         sources: []
       }
@@ -86,7 +91,7 @@ export default function AgronomyAssistantView() {
               fontSize: '0.72rem',
               fontWeight: 700
             }}>
-              {currentLanguageObj.nativeName} Mode Active
+              {currentLanguageObj?.nativeName || 'Regional'} Mode Active
             </span>
           </div>
           <h2 style={{ fontSize: '1.75rem', color: 'var(--text-primary)', marginTop: '6px', fontFamily: "'Fraunces', serif" }}>
