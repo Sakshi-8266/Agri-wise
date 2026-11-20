@@ -1,0 +1,9 @@
+{
+  "name": "agriwise-root",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm --prefix agriwise-main run dev",
+    "backend": "npm --prefix agriwise-main run backend",
+    "frontend": "npm --prefix agriwise-main run frontend"
+  }
+}
