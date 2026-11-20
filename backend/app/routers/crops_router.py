@@ -28,6 +28,7 @@ def create_crop_record(crop_in: CropRecordCreate, current_user: User = Depends(g
     crop = CropRecord(
         farm_id=crop_in.farm_id,
         crop_name=crop_in.crop_name,
+        region=crop_in.region or "Western Plain Zone (Gujarat)",
         crop_variety=crop_in.crop_variety,
         sowing_date=crop_in.sowing_date,
         expected_harvest_date=crop_in.expected_harvest_date,

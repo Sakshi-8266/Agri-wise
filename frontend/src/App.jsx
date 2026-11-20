@@ -18,11 +18,14 @@ import AdminDashboard from './components/AdminDashboard';
 import DeliveryDashboard from './components/DeliveryDashboard';
 import AuthModal from './components/AuthModal';
 import ErrorBoundary from './components/ErrorBoundary';
+import RakshakFabWidget from './components/RakshakFabWidget';
+import LogoutConfirmModal from './components/LogoutConfirmModal';
+import { ToastProvider } from './context/ToastContext';
 import { api, DEMO_ACCOUNTS } from './api';
 import { useLanguage } from './i18n/LanguageContext';
 import { 
   Home, Activity, Layers, Sparkles, Camera, CloudSun, 
-  MessageSquare, TrendingUp, ShoppingBag, Package, Users, ShieldAlert,
+  TrendingUp, ShoppingBag, Package, Users, ShieldAlert,
   Truck, Navigation, CheckCircle2
 } from 'lucide-react';
 
@@ -33,6 +36,7 @@ export default function App() {
   const [theme, setTheme] = useState('light');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Auto-login default demo farmer on first load
   useEffect(() => {
@@ -42,7 +46,6 @@ export default function App() {
       setCurrentUser(storedUser);
       setCurrentRole(storedUser.role);
     } else {
-      // Default auto-login as Farmer for immediate rich dashboard experience
       handleRoleSwitch('Farmer');
     }
   }, [theme]);
@@ -63,7 +66,6 @@ export default function App() {
       setCurrentUser(data.user);
       setCurrentRole(data.user.role);
 
-      // Set default tab for role
       if (roleKey === 'Farmer') setActiveTab('overview');
       else if (roleKey === 'Buyer') setActiveTab('marketplace');
       else if (roleKey === 'Delivery') setActiveTab('delivery-ops');
@@ -75,200 +77,230 @@ export default function App() {
   };
 
   const handleLogout = async () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = async () => {
+    setShowLogoutModal(false);
     await api.logout();
     setCurrentUser(null);
     setActiveTab('landing');
   };
 
+  const handleExitToLanding = () => {
+    setShowLogoutModal(false);
+    setActiveTab('landing');
+  };
+
   const { t } = useLanguage();
 
-  const getRoleTabs = () => {
+  // Functionally grouped sidebar navigation items
+  const getRoleTabGroups = () => {
     const role = currentRole || 'Farmer';
 
     if (role === 'Farmer') {
       return [
-        { id: 'overview', label: t('nav.overview', 'Decision Intelligence'), icon: <Activity size={16} /> },
-        { id: 'farms', label: t('nav.farms', 'Farms & Crops'), icon: <Layers size={16} /> },
-        { id: 'crops-recommend', label: t('nav.cropsRecommend', 'AI Crop Recommendation'), icon: <Sparkles size={16} /> },
-        { id: 'disease', label: t('nav.disease', 'Disease Scanner'), icon: <Camera size={16} /> },
-        { id: 'weather', label: t('nav.weather', 'Weather Center'), icon: <CloudSun size={16} /> },
-        { id: 'assistant', label: t('nav.assistant', 'Rakshak AI'), icon: <MessageSquare size={16} /> },
-        { id: 'market', label: t('nav.market', 'Demand Forecasting'), icon: <TrendingUp size={16} /> },
-        { id: 'listings', label: t('nav.listings', 'My Produce Listings'), icon: <ShoppingBag size={16} /> },
-        { id: 'orders', label: t('nav.orders', 'Orders Received'), icon: <Package size={16} /> },
+        {
+          group: t('nav.groupOps', 'Farm Operations & Records'),
+          items: [
+            { id: 'overview', label: t('nav.overview', 'Dashboard'), icon: <Activity size={16} /> },
+            { id: 'farms', label: t('nav.farms', 'Farms & Crops'), icon: <Layers size={16} /> },
+          ]
+        },
+        {
+          group: t('nav.groupDecision', 'Decision Intelligence'),
+          items: [
+            { id: 'crops-recommend', label: t('nav.cropsRecommend', 'Crop Advisory'), icon: <Sparkles size={16} /> },
+            { id: 'disease', label: t('nav.disease', 'Disease Scanner'), icon: <Camera size={16} /> },
+            { id: 'weather', label: t('nav.weather', 'Weather & Soil'), icon: <CloudSun size={16} /> },
+          ]
+        },
+        {
+          group: t('nav.groupCommerce', 'Financial Commerce'),
+          items: [
+            { id: 'market', label: t('nav.market', 'Demand Forecast'), icon: <TrendingUp size={16} /> },
+            { id: 'listings', label: t('nav.listings', 'Produce Listings'), icon: <ShoppingBag size={16} /> },
+            { id: 'orders', label: t('nav.orders', 'Orders Received'), icon: <Package size={16} /> },
+          ]
+        }
       ];
     } else if (role === 'Buyer') {
       return [
-        { id: 'marketplace', label: t('nav.marketplace', 'Discover Produce'), icon: <ShoppingBag size={16} /> },
-        { id: 'buyer-orders', label: t('nav.buyerOrders', 'My Orders & Tracking'), icon: <Package size={16} /> },
-        { id: 'market', label: t('nav.market', 'Mandi Trends'), icon: <TrendingUp size={16} /> },
+        {
+          group: t('nav.groupBuyerCommerce', 'Produce Marketplace'),
+          items: [
+            { id: 'marketplace', label: t('nav.marketplace', 'Discover Produce'), icon: <ShoppingBag size={16} /> },
+            { id: 'buyer-orders', label: t('nav.buyerOrders', 'My Orders & Tracking'), icon: <Package size={16} /> },
+          ]
+        },
+        {
+          group: t('nav.groupMarketIntel', 'Market Intelligence'),
+          items: [
+            { id: 'market', label: t('nav.market', 'Mandi Demand Trends'), icon: <TrendingUp size={16} /> },
+          ]
+        }
       ];
     } else if (role === 'Delivery') {
       return [
-        { id: 'delivery-ops', label: t('nav.deliveryOps', 'Assigned Deliveries & Dispatch'), icon: <Truck size={16} /> },
-        { id: 'delivery-gps', label: t('nav.deliveryGps', 'Live GPS & Route Optimization'), icon: <Navigation size={16} /> },
-        { id: 'delivery-history', label: t('nav.deliveryHistory', 'Logistics History & Earnings'), icon: <CheckCircle2 size={16} /> },
+        {
+          group: t('nav.groupDelivery', 'Logistics & Dispatch'),
+          items: [
+            { id: 'delivery-ops', label: t('nav.deliveryOps', 'Assigned Deliveries & Dispatch'), icon: <Truck size={16} /> },
+            { id: 'delivery-gps', label: t('nav.deliveryGps', 'Live GPS & Route Optimization'), icon: <Navigation size={16} /> },
+            { id: 'delivery-history', label: t('nav.deliveryHistory', 'Logistics History & Earnings'), icon: <CheckCircle2 size={16} /> },
+          ]
+        }
       ];
     } else if (role === 'FPO') {
       return [
-        { id: 'fpo', label: t('nav.fpo', 'FPO Overview & Supply'), icon: <Users size={16} /> },
-        { id: 'marketplace', label: t('nav.marketplace', 'Marketplace Directory'), icon: <ShoppingBag size={16} /> },
-        { id: 'market', label: t('nav.market', 'Mandi Demand Trends'), icon: <TrendingUp size={16} /> },
+        {
+          group: t('nav.groupFpo', 'FPO Management'),
+          items: [
+            { id: 'fpo', label: t('nav.fpo', 'FPO Overview & Aggregated Supply'), icon: <Users size={16} /> },
+            { id: 'marketplace', label: t('nav.marketplace', 'Marketplace Directory'), icon: <ShoppingBag size={16} /> },
+            { id: 'market', label: t('nav.market', 'Mandi Demand Trends'), icon: <TrendingUp size={16} /> },
+          ]
+        }
       ];
     } else if (role === 'Admin') {
       return [
-        { id: 'admin', label: t('nav.admin', 'Platform Telemetry & Audit'), icon: <ShieldAlert size={16} /> },
-        { id: 'farms', label: t('nav.farms', 'Farms Directory'), icon: <Layers size={16} /> },
-        { id: 'marketplace', label: t('nav.marketplace', 'Listing Moderation'), icon: <ShoppingBag size={16} /> },
+        {
+          group: t('nav.groupAdmin', 'Platform Telemetry & Audit'),
+          items: [
+            { id: 'admin', label: t('nav.admin', 'Platform Telemetry & Audit'), icon: <ShieldAlert size={16} /> },
+            { id: 'farms', label: t('nav.farms', 'Farms Directory'), icon: <Layers size={16} /> },
+            { id: 'marketplace', label: t('nav.marketplace', 'Listing Moderation'), icon: <ShoppingBag size={16} /> },
+          ]
+        }
       ];
     }
     return [];
   };
 
-  const tabs = getRoleTabs();
-
-  const handleSelectTab = (tabId) => {
-    if (!currentUser) {
-      const demoUser = DEMO_ACCOUNTS[currentRole || 'Farmer'];
-      setCurrentUser(demoUser);
-    }
-    setActiveTab(tabId);
-  };
+  const tabGroups = getRoleTabGroups();
+  const allTabs = tabGroups.flatMap(g => g.items);
+  const activeTabObj = allTabs.find(t => t.id === activeTab);
 
   const isLanding = !currentUser || activeTab === 'landing';
-  const activeTabObj = tabs.find(t => t.id === activeTab);
 
-  if (isLanding) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#fbfaf6' }}>
-        {/* Landing Top Navbar (No navigation strip) */}
-        <Navbar 
-          isLanding={true}
-          currentUser={currentUser}
-          currentRole={currentRole}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onRoleSwitch={handleRoleSwitch}
-          onLogout={handleLogout}
-          onOpenLogin={() => setShowAuthModal(true)}
-        />
-
-        {/* Public Landing View */}
-        <main style={{ flex: 1, maxWidth: '1360px', width: '100%', margin: '0 auto', padding: '0 24px 60px' }}>
-          <LandingView 
-            onRoleSwitch={handleRoleSwitch} 
-            onLoginSuccess={() => setActiveTab('overview')} 
+  return (
+    <ToastProvider>
+      {isLanding ? (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: '#f8faf7' }}>
+          {/* Landing Top Navbar */}
+          <Navbar 
+            isLanding={true}
+            currentUser={currentUser}
+            currentRole={currentRole}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onRoleSwitch={handleRoleSwitch}
+            onLogout={handleLogout}
             onOpenLogin={() => setShowAuthModal(true)}
           />
-        </main>
 
-        {/* Auth Modal */}
-        <AuthModal 
-          isOpen={showAuthModal} 
-          onClose={() => setShowAuthModal(false)}
-          onRoleSwitch={handleRoleSwitch}
-          onLoginSuccess={(user) => {
-            setCurrentUser(user);
-            setCurrentRole(user.role);
-            if (user.role === 'Farmer') setActiveTab('overview');
-            else if (user.role === 'Buyer') setActiveTab('marketplace');
-            else if (user.role === 'FPO') setActiveTab('fpo');
-            else if (user.role === 'Admin') setActiveTab('admin');
-            setShowAuthModal(false);
-          }}
-        />
+          {/* Public Landing View */}
+          <main style={{ flex: 1, maxWidth: '1360px', width: '100%', margin: '0 auto', padding: '0 24px 60px' }}>
+            <LandingView 
+              onRoleSwitch={handleRoleSwitch} 
+              onLoginSuccess={() => setActiveTab('overview')} 
+              onOpenLogin={() => setShowAuthModal(true)}
+            />
+          </main>
 
-        {/* Platform Footer */}
-        <footer style={{
-          borderTop: '1px solid rgba(27, 56, 43, 0.08)',
-          padding: '24px',
-          textAlign: 'center',
-          fontSize: '0.8rem',
-          color: '#6e8276',
-          background: '#f4f2eb'
-        }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <strong style={{ color: '#163326' }}>agriwise FIELD DESK</strong> • Smart Agriculture, Farm Management & Market Intelligence
+          {/* Platform Footer */}
+          <footer style={{
+            borderTop: '1px solid rgba(18, 53, 36, 0.08)',
+            padding: '24px',
+            textAlign: 'center',
+            fontSize: '0.8rem',
+            color: '#657e70',
+            background: '#ffffff'
+          }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <strong style={{ color: '#123524' }}>agriwise FIELD DESK</strong> • Smart Agriculture, Farm Records & Market Intelligence
+              </div>
+              <div>
+                Enterprise Agricultural Intelligence Platform
+              </div>
             </div>
-            <div>
-              Enterprise Agriculture Intelligence Platform
-            </div>
+          </footer>
+        </div>
+      ) : (
+        /* Logged-in App Layout: Dedicated Sidebar Navigation on the Left */
+        <div style={{ display: 'flex', minHeight: '100vh', width: '100%', maxWidth: '100vw', overflowX: 'hidden', background: '#f8faf7' }}>
+          {/* Sidebar Navigation */}
+          <Sidebar 
+            currentUser={currentUser}
+            currentRole={currentRole}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            tabGroups={tabGroups}
+            onLogout={handleLogout}
+            onOpenProfile={() => setShowProfileModal(true)}
+          />
+
+          {/* Main Workspace Area (Header + Active Module Content) */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, width: 'calc(100% - 264px)', overflowX: 'hidden' }}>
+            <Navbar 
+              isLanding={false}
+              currentUser={currentUser}
+              currentRole={currentRole}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              onRoleSwitch={handleRoleSwitch}
+              onLogout={handleLogout}
+              onOpenLogin={() => setShowAuthModal(true)}
+              activeTabLabel={activeTabObj?.label}
+              showProfileModal={showProfileModal}
+              setShowProfileModal={setShowProfileModal}
+            />
+
+            <main style={{ flex: 1, padding: '20px 24px 60px', width: '100%', maxWidth: '1440px', boxSizing: 'border-box', margin: '0 auto' }}>
+              <ErrorBoundary>
+                {activeTab === 'overview' && <FarmerDashboard onNavigate={setActiveTab} />}
+                {activeTab === 'farms' && <FarmManagement />}
+                {activeTab === 'crops-recommend' && <CropRecommendationView />}
+                {activeTab === 'disease' && <DiseaseScannerView />}
+                {activeTab === 'weather' && <WeatherCenterView />}
+                {activeTab === 'assistant' && <AgronomyAssistantView />}
+                {activeTab === 'market' && <MarketIntelligenceView />}
+                {activeTab === 'listings' && <FarmerListingsView />}
+                {activeTab === 'orders' && <FarmerOrdersView />}
+                {activeTab === 'marketplace' && <MarketplaceBuyer onNavigate={setActiveTab} />}
+                {activeTab === 'buyer-orders' && <BuyerOrdersView onNavigate={setActiveTab} />}
+                {activeTab === 'fpo' && <FpoDashboard />}
+                {activeTab === 'admin' && <AdminDashboard />}
+                {(activeTab === 'delivery-ops' || activeTab === 'delivery-gps' || activeTab === 'delivery-history') && (
+                  <DeliveryDashboard activeSubTab={activeTab} setActiveSubTab={setActiveTab} />
+                )}
+              </ErrorBoundary>
+            </main>
+
+            <footer style={{
+              borderTop: '1px solid rgba(18, 53, 36, 0.08)',
+              padding: '16px 32px',
+              fontSize: '0.78rem',
+              color: '#657e70',
+              background: '#ffffff',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <strong style={{ color: '#123524' }}>agriwise FIELD DESK</strong> • Real-time Agronomy & Telemetry Network
+              </div>
+              <div style={{ color: '#7e9688' }}>
+                Role: <strong>{currentRole}</strong> • Session Active
+              </div>
+            </footer>
           </div>
-        </footer>
-      </div>
-    );
-  }
+        </div>
+      )}
 
-  // Logged-in App Layout: Dedicated Sidebar Navigation on the Left
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#fbfaf6' }}>
-      {/* Sidebar Navigation */}
-      <Sidebar 
-        currentUser={currentUser}
-        currentRole={currentRole}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        tabs={tabs}
-        onLogout={handleLogout}
-        onOpenProfile={() => setShowProfileModal(true)}
-      />
-
-      {/* Main Workspace Area (Header + Active Module Content) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowX: 'hidden' }}>
-        <Navbar 
-          isLanding={false}
-          currentUser={currentUser}
-          currentRole={currentRole}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onRoleSwitch={handleRoleSwitch}
-          onLogout={handleLogout}
-          onOpenLogin={() => setShowAuthModal(true)}
-          activeTabLabel={activeTabObj?.label}
-          showProfileModal={showProfileModal}
-          setShowProfileModal={setShowProfileModal}
-        />
-
-        <main style={{ flex: 1, padding: '24px 32px 60px', width: '100%', maxWidth: '1440px', margin: '0 auto' }}>
-          <ErrorBoundary>
-            {activeTab === 'overview' && <FarmerDashboard onNavigate={setActiveTab} />}
-            {activeTab === 'farms' && <FarmManagement />}
-            {activeTab === 'crops-recommend' && <CropRecommendationView />}
-            {activeTab === 'disease' && <DiseaseScannerView />}
-            {activeTab === 'weather' && <WeatherCenterView />}
-            {activeTab === 'assistant' && <AgronomyAssistantView />}
-            {activeTab === 'market' && <MarketIntelligenceView />}
-            {activeTab === 'listings' && <FarmerListingsView />}
-            {activeTab === 'orders' && <FarmerOrdersView />}
-            {activeTab === 'marketplace' && <MarketplaceBuyer onNavigate={setActiveTab} />}
-            {activeTab === 'buyer-orders' && <BuyerOrdersView onNavigate={setActiveTab} />}
-            {activeTab === 'fpo' && <FpoDashboard />}
-            {activeTab === 'admin' && <AdminDashboard />}
-            {(activeTab === 'delivery-ops' || activeTab === 'delivery-gps' || activeTab === 'delivery-history') && (
-              <DeliveryDashboard activeSubTab={activeTab} setActiveSubTab={setActiveTab} />
-            )}
-          </ErrorBoundary>
-        </main>
-
-        <footer style={{
-          borderTop: '1px solid rgba(27, 56, 43, 0.08)',
-          padding: '18px 32px',
-          fontSize: '0.78rem',
-          color: '#6e8276',
-          background: '#ffffff',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div>
-            <strong style={{ color: '#163326' }}>agriwise FIELD DESK</strong> • Real-time Agronomy & Telemetry Network
-          </div>
-          <div style={{ color: '#889e90' }}>
-            Role: <strong>{currentRole}</strong> • Session Active
-          </div>
-        </footer>
-      </div>
+      {/* Persistent Rakshak AI Corner Toggle Widget (Accessible across every page) */}
+      <RakshakFabWidget />
 
       {/* Auth Modal */}
       <AuthModal 
@@ -286,6 +318,15 @@ export default function App() {
           setShowAuthModal(false);
         }}
       />
-    </div>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmModal 
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirmLogout={handleConfirmLogout}
+        onExitToLanding={handleExitToLanding}
+        currentUser={currentUser}
+      />
+    </ToastProvider>
   );
 }

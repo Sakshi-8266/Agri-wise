@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import User
-from ..schemas import UserRegister, UserLogin, UserResponse, TokenResponse, UserPreferenceUpdate
+from ..schemas import UserRegister, UserLogin, UserResponse, TokenResponse, UserPreferenceUpdate, EmailOtpRequest, VerifyOtpRequest
 from ..auth import hash_password, verify_password, create_access_token, get_current_user, log_audit
+from ..services.email_service import email_otp_service
 
 router = APIRouter(prefix="/auth", tags=["Authentication & RBAC"])
 
@@ -56,6 +57,54 @@ def login(user_in: UserLogin, db: Session = Depends(get_db)):
         )
 
     log_audit(db, user, "USER_LOGIN", "USER", str(user.id), "Successful login")
+
+    token = create_access_token({"sub": str(user.id), "role": user.role})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "user": user
+    }
+
+@router.post("/send-otp")
+def send_email_otp(req: EmailOtpRequest):
+    """
+    Sends a 6-digit OTP code to the requested email address via
+    reliable HTTP REST email service (Brevo/Resend) or fallback cloud dispatch.
+    """
+    res = email_otp_service.send_otp(req.email)
+    return res
+
+@router.post("/verify-otp", response_model=TokenResponse)
+def verify_email_otp(req: VerifyOtpRequest, db: Session = Depends(get_db)):
+    """
+    Verifies the email OTP. If valid, signs in the user.
+    If the email is not registered yet, auto-provisions a Farmer user.
+    """
+    is_valid, msg = email_otp_service.verify_otp(req.email, req.otp)
+    if not is_valid:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
+
+    normalized_email = req.email.strip().lower()
+    user = db.query(User).filter(User.email == normalized_email).first()
+
+    # Auto-provision farmer account if new user
+    if not user:
+        name_hint = normalized_email.split('@')[0].replace('.', ' ').title()
+        user = User(
+            name=f"{name_hint} (Farmer)",
+            email=normalized_email,
+            phone="+91-9876500000",
+            password_hash=hash_password("Farmer@123"),
+            role="Farmer",
+            preferred_language="en",
+            account_status="ACTIVE"
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        log_audit(db, user, "OTP_REGISTER", "USER", str(user.id), "Registered via Email OTP")
+    else:
+        log_audit(db, user, "OTP_LOGIN", "USER", str(user.id), "Successful login via Email OTP")
 
     token = create_access_token({"sub": str(user.id), "role": user.role})
     return {

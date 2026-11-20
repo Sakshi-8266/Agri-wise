@@ -58,6 +58,7 @@ class CropRecord(Base):
     id = Column(Integer, primary_key=True, index=True)
     farm_id = Column(Integer, ForeignKey("farms.id"), nullable=False)
     crop_name = Column(String(100), nullable=False)
+    region = Column(String(100), nullable=True)
     crop_variety = Column(String(100), nullable=True)
     sowing_date = Column(String(30), nullable=True)
     expected_harvest_date = Column(String(30), nullable=True)
@@ -232,6 +233,8 @@ class ProductListing(Base):
     unit = Column(String(20), default="kg")  # kg, quintals, tonnes, boxes
     asking_price = Column(Float, nullable=False)  # per unit
     location = Column(String(150), nullable=False)
+    region = Column(String(100), nullable=True)
+    harvest_date = Column(String(30), nullable=True)
     image_url = Column(Text, nullable=True)
     is_organic = Column(Boolean, default=False)
     status = Column(String(20), default="ACTIVE")  # ACTIVE, PAUSED, OUT_OF_STOCK, ARCHIVED

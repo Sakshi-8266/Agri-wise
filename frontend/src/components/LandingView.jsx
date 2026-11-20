@@ -7,6 +7,7 @@ import {
 import { api, DEMO_ACCOUNTS } from '../api';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageSelector from './LanguageSelector';
+import LocationBanner from './LocationBanner';
 
 export default function LandingView({ onRoleSwitch, onLoginSuccess, onOpenLogin }) {
   const { t, currentLanguageObj, greeting } = useLanguage();
@@ -43,7 +44,12 @@ export default function LandingView({ onRoleSwitch, onLoginSuccess, onOpenLogin 
   };
 
   return (
-    <div className="animate-fade-in" style={{ padding: '30px 0 80px' }}>
+    <div className="animate-fade-in" style={{ padding: '20px 0 80px' }}>
+      {/* Live Agricultural Telemetry & Location Service on Main Page */}
+      <div style={{ maxWidth: '1240px', margin: '0 auto 28px', padding: '0 10px' }}>
+        <LocationBanner variant="hero" />
+      </div>
+
       {/* Hero Section matching the user's reference image */}
       <div style={{
         display: 'grid',

@@ -63,6 +63,8 @@ def create_product_listing(
         unit=prod_in.unit,
         asking_price=prod_in.asking_price,
         location=prod_in.location,
+        region=prod_in.region or "Western Plain Zone (Gujarat)",
+        harvest_date=prod_in.harvest_date,
         image_url=prod_in.image_url,
         is_organic=prod_in.is_organic or False,
         status="ACTIVE"

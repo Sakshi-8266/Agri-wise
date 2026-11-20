@@ -5,7 +5,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'English',
     region: 'Pan-India / Official',
     short: 'EN',
-    greeting: 'Welcome Farmer Friend'
+    greeting: 'Namaste'
   },
   {
     code: 'hi',
@@ -13,7 +13,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'हिन्दी',
     region: 'North & Central India (UP, MP, Bihar, Rajasthan, Haryana)',
     short: 'हि',
-    greeting: 'नमस्ते किसान भाई'
+    greeting: 'नमस्ते'
   },
   {
     code: 'gu',
@@ -21,7 +21,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'ગુજરાતી',
     region: 'Gujarat & Western India (Anand, Saurashtra, Kutch)',
     short: 'ગુ',
-    greeting: 'નમસ્તે ખેડૂત મિત્ર'
+    greeting: 'નમસ્તે'
   },
   {
     code: 'pa',
@@ -29,7 +29,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'ਪੰਜਾਬੀ',
     region: 'Punjab & North-West (Grain Basket of India)',
     short: 'ਪੰ',
-    greeting: 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਕਿਸਾਨ ਵੀਰੋ'
+    greeting: 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ'
   },
   {
     code: 'mr',
@@ -37,7 +37,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'मराठी',
     region: 'Maharashtra & Western Ghats (Vidarbha, Nashik, Marathwada)',
     short: 'म',
-    greeting: 'नमस्कार शेतकरी मित्र'
+    greeting: 'नमस्कार'
   },
   {
     code: 'te',
@@ -45,7 +45,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'తెలుగు',
     region: 'Andhra Pradesh & Telangana (Krishna & Godavari Deltas)',
     short: 'తె',
-    greeting: 'నమస్కారం రైతు సోదరులారా'
+    greeting: 'నమస్కారం'
   },
   {
     code: 'ta',
@@ -53,7 +53,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'தமிழ்',
     region: 'Tamil Nadu & Cauvery Delta',
     short: 'த',
-    greeting: 'வணக்கம் விவசாய தோழர்களே'
+    greeting: 'வணக்கம்'
   },
   {
     code: 'bn',
@@ -61,7 +61,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'বাংলা',
     region: 'West Bengal & Eastern Plains',
     short: 'বা',
-    greeting: 'নমস্কার কৃষক ভাই ও বোনেরা'
+    greeting: 'নমস্কার'
   },
   {
     code: 'kn',
@@ -69,7 +69,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'ಕನ್ನಡ',
     region: 'Karnataka & Deccan Plateau',
     short: 'ಕ',
-    greeting: 'ನಮಸ್ಕಾರ ರೈತ ಮಿತ್ರರೇ'
+    greeting: 'ನಮಸ್ಕಾರ'
   },
   {
     code: 'ml',
@@ -77,7 +77,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'മലയാളം',
     region: 'Kerala & Western Coast (Spices & Plantation)',
     short: 'മ',
-    greeting: 'നമസ്കാരം കർഷക സുഹൃത്തുക്കളെ'
+    greeting: 'നമസ്കാരം'
   },
   {
     code: 'or',
@@ -85,7 +85,7 @@ export const SUPPORTED_LANGUAGES = [
     nativeName: 'ଓଡ଼ିଆ',
     region: 'Odisha & Mahanadi Valley (Paddy Belt)',
     short: 'ଓ',
-    greeting: 'ନମସ୍କାର ଚାଷୀ ଭାଇ ଓ ଭଉଣୀ'
+    greeting: 'ନମସ୍କାର'
   }
 ];
 

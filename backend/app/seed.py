@@ -42,6 +42,29 @@ def ensure_logistics_columns(engine):
         ("pod_signature", "VARCHAR(150)")
     ]
     
+    # Ensure crop_records has region column
+    try:
+        crop_cols = {c['name'] for c in inspector.get_columns('crop_records')}
+        with engine.connect() as conn:
+            if 'region' not in crop_cols:
+                conn.execute(text("ALTER TABLE crop_records ADD COLUMN region VARCHAR(100) DEFAULT 'Western Plain Zone (Gujarat)'"))
+                conn.commit()
+    except Exception as e:
+        print(f"Crop records migration warning: {e}")
+
+    # Ensure product_listings has region and harvest_date columns
+    try:
+        prod_cols = {c['name'] for c in inspector.get_columns('product_listings')}
+        with engine.connect() as conn:
+            if 'region' not in prod_cols:
+                conn.execute(text("ALTER TABLE product_listings ADD COLUMN region VARCHAR(100) DEFAULT 'Western Plain Zone (Gujarat)'"))
+                conn.commit()
+            if 'harvest_date' not in prod_cols:
+                conn.execute(text("ALTER TABLE product_listings ADD COLUMN harvest_date VARCHAR(30)"))
+                conn.commit()
+    except Exception as e:
+        print(f"Product listings migration warning: {e}")
+
     with engine.connect() as conn:
         for col_name, col_type in needed_cols:
             if col_name not in existing_cols:

@@ -53,12 +53,12 @@ export const api = {
     } catch {
       // If relative API_BASE failed (e.g. dev server proxy issue), try direct backend fallback
       try {
-        res = await fetch(`http://127.0.0.1:8000/api/v1${endpoint}`, {
+        res = await fetch(`http://127.0.0.1:8001/api/v1${endpoint}`, {
           ...options,
           headers
         });
       } catch {
-        throw new Error('Backend server is unreachable (port 8000). Please start the backend server with `npm run backend` or `npm run dev`.');
+        throw new Error('Backend server is unreachable (port 8001). Please start the backend server with `npm run backend` or `npm run dev`.');
       }
     }
 
@@ -114,6 +114,23 @@ export const api = {
     const data = await this.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify(payload)
+    });
+    this.setToken(data.access_token);
+    this.setUser(data.user);
+    return data;
+  },
+
+  async sendEmailOtp(email) {
+    return this.request('/auth/send-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+  },
+
+  async verifyEmailOtp(email, otp) {
+    const data = await this.request('/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp })
     });
     this.setToken(data.access_token);
     this.setUser(data.user);
@@ -212,7 +229,14 @@ export const api = {
   getAuditLogs: () => api.request('/admin/audit-logs'),
 
   // Decision Support
-  getDecisionSupport: () => api.request('/decision-support/dashboard'),
+  getDecisionSupport: (lat, lon, location) => {
+    const params = new URLSearchParams();
+    if (lat) params.append('lat', lat);
+    if (lon) params.append('lon', lon);
+    if (location) params.append('location', location);
+    const qs = params.toString();
+    return api.request(`/decision-support/dashboard${qs ? '?' + qs : ''}`);
+  },
 
   // Delivery Partner Logistics & Telemetry
   getAssignedDeliveries: () => api.request('/delivery/orders/assigned'),

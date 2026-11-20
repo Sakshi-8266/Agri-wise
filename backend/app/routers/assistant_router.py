@@ -42,8 +42,19 @@ def chat_with_assistant(
         )
         db.add(user_msg)
 
-    # RAG Search and generate
-    rag_result = rag_service.search_and_generate(req.message)
+    # Extract user, farm, and crop context to personalize RAG response
+    farmer_context = None
+    if current_user:
+        from ..models import Farm, CropRecord
+        farms = db.query(Farm).filter(Farm.owner_id == current_user.id).all()
+        farm_names = [f"{f.farm_name} ({f.area} {f.area_unit}, Soil: {f.soil_type}, Loc: {f.location})" for f in farms]
+        farm_ids = [f.id for f in farms]
+        crops = db.query(CropRecord).filter(CropRecord.farm_id.in_(farm_ids)).all() if farm_ids else []
+        crop_names = [f"{c.crop_name} (Variety: {c.crop_variety or 'Standard'}, Stage: {c.growth_stage}, Season: {c.season})" for c in crops]
+        farmer_context = f"Farmer: {current_user.name}. Farms: {'; '.join(farm_names)}. Active Crops: {'; '.join(crop_names)}."
+
+    # RAG Search and generate with farmer context
+    rag_result = rag_service.search_and_generate(req.message, farmer_context=farmer_context)
 
     # Save assistant message with sources if conversation exists
     if conv:

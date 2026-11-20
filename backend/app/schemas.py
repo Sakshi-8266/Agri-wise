@@ -15,6 +15,13 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class EmailOtpRequest(BaseModel):
+    email: EmailStr
+
+class VerifyOtpRequest(BaseModel):
+    email: EmailStr
+    otp: str
+
 class UserResponse(BaseModel):
     id: int
     name: str
@@ -62,6 +69,7 @@ class FarmResponse(FarmCreate):
 class CropRecordCreate(BaseModel):
     farm_id: int
     crop_name: str
+    region: Optional[str] = "Western Plain Zone (Gujarat)"
     crop_variety: Optional[str] = None
     sowing_date: Optional[str] = None
     expected_harvest_date: Optional[str] = None
@@ -139,6 +147,8 @@ class DiseaseAnalysisResponse(BaseModel):
     confidence: float
     severity: str
     symptoms: str
+    infection_coverage_pct: Optional[float] = None
+    detected_lesions: Optional[List[Dict[str, Any]]] = None
     management_guide: Dict[str, Any]
     is_uncertain: bool
     disclaimer: str
@@ -204,6 +214,8 @@ class ProductListingCreate(BaseModel):
     unit: str = "kg"
     asking_price: float
     location: str
+    region: Optional[str] = "Western Plain Zone (Gujarat)"
+    harvest_date: Optional[str] = None
     image_url: Optional[str] = None
     is_organic: Optional[bool] = False
 

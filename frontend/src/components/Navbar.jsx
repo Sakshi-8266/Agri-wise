@@ -8,6 +8,8 @@ import { api, DEMO_ACCOUNTS } from '../api';
 import FarmerProfileModal from './FarmerProfileModal';
 import { useLanguage } from '../i18n/LanguageContext';
 import LanguageSelector from './LanguageSelector';
+import LocationBanner from './LocationBanner';
+import CustomAgriLogo from './CustomAgriLogo';
 
 export default function Navbar({ 
   isLanding = false,
@@ -139,57 +141,17 @@ export default function Navbar({
           justifyContent: 'space-between',
           gap: '16px'
         }}>
-          {/* Brand Logo */}
+          {/* Brand Logo with Custom Agricultural Emblem */}
           <div 
             onClick={() => setActiveTab('landing')}
-            style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+            style={{ cursor: 'pointer' }}
           >
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: '#163326',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 10px rgba(22, 51, 38, 0.16)',
-              flexShrink: 0
-            }}>
-              {/* Exact Seedling Sprout Icon */}
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d5e6db" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M 6.5 18.5 H 17.5" />
-                <path d="M 12 18.5 V 13" />
-                <path d="M 12 13.8 C 9 14.8 6.5 12.8 7.2 10.2 C 7.8 7.8 11 8.8 12 11.8" />
-                <path d="M 12 11.8 C 13.2 8.8 15.5 6.2 17.8 7.2 C 19.2 8.5 17.5 12.5 12.5 11.8" />
-              </svg>
-            </div>
-            <div>
-              <div style={{ 
-                fontSize: '1.38rem', 
-                fontWeight: 800, 
-                letterSpacing: '-0.025em', 
-                color: '#163326',
-                lineHeight: 1.05,
-                fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
-              }}>
-                agriwise
-              </div>
-              <div style={{ 
-                fontSize: '0.64rem', 
-                fontWeight: 700, 
-                letterSpacing: '0.18em', 
-                color: '#718779', 
-                textTransform: 'uppercase',
-                lineHeight: 1,
-                marginTop: '4px'
-              }}>
-                FIELD DESK
-              </div>
-            </div>
+            <CustomAgriLogo size={38} variant="full" />
           </div>
 
-          {/* Right Controls: Language Selector + Role Switcher Demo Buttons + Sign In / Dashboard Shortcut */}
+          {/* Right Controls: Location Pill + Language Selector + Role Switcher Demo Buttons + Sign In / Dashboard Shortcut */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <LocationBanner variant="compact" />
             <LanguageSelector variant="dropdown" />
             <div style={{
               display: 'flex',
@@ -292,51 +254,33 @@ export default function Navbar({
         zIndex: 90,
         background: '#ffffff',
         borderBottom: '1px solid rgba(27, 56, 43, 0.08)',
-        padding: '12px 32px',
+        padding: '10px 24px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '16px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+        gap: '12px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+        maxWidth: '100%',
+        boxSizing: 'border-box'
       }}>
-        {/* Left: Current Active View Title & Status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Left: Current Active View Title */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flexShrink: 0 }}>
           <h2 style={{
-            fontSize: '1.25rem',
+            fontSize: '1.2rem',
             fontWeight: 800,
             color: '#163326',
             margin: 0,
             letterSpacing: '-0.02em',
-            fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
+            fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+            whiteSpace: 'nowrap'
           }}>
             {activeTabLabel || 'Dashboard'}
           </h2>
-          <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '5px',
-            background: '#eef4f0',
-            color: '#2d6a4f',
-            padding: '3px 10px',
-            borderRadius: '999px',
-            fontSize: '0.72rem',
-            fontWeight: 700,
-            letterSpacing: '0.02em'
-          }}>
-            <span style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: '#2d6a4f',
-              display: 'inline-block'
-            }} />
-            {t('common.systemOperational', 'System Operational')}
-          </span>
         </div>
 
-        {/* Right Controls: Language Selector + Role Switcher + Notifications + Profile Dropdown */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <LanguageSelector variant="dropdown" />
+        {/* Right Controls: Location Pill + Role Switcher + Notifications + Profile Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, justifyContent: 'flex-end' }}>
+          <LocationBanner variant="compact" />
           {/* Role Switcher in Organic Pill Shape */}
           <div style={{
             display: 'flex',
@@ -344,20 +288,9 @@ export default function Navbar({
             background: '#eef3ef',
             border: '1px solid rgba(27, 56, 43, 0.08)',
             borderRadius: '999px',
-            padding: '3px 5px',
-            gap: '3px'
+            padding: '2px 4px',
+            gap: '2px'
           }}>
-            <span style={{ 
-              fontSize: '0.66rem', 
-              color: '#657a6f', 
-              paddingLeft: '8px', 
-              paddingRight: '4px', 
-              fontWeight: 700, 
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase'
-            }}>
-              ROLE:
-            </span>
             {Object.keys(DEMO_ACCOUNTS).map(roleKey => {
               const isActive = currentRole === roleKey;
               return (
@@ -368,13 +301,14 @@ export default function Navbar({
                     background: isActive ? '#1b382b' : 'transparent',
                     color: isActive ? '#ffffff' : '#4a5c52',
                     border: 'none',
-                    padding: '5px 12px',
+                    padding: '4px 10px',
                     borderRadius: '999px',
-                    fontSize: '0.76rem',
+                    fontSize: '0.72rem',
                     fontWeight: isActive ? 700 : 500,
                     cursor: 'pointer',
-                    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                    boxShadow: isActive ? '0 2px 6px rgba(27, 56, 43, 0.2)' : 'none'
+                    transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: isActive ? '0 2px 6px rgba(27, 56, 43, 0.2)' : 'none',
+                    whiteSpace: 'nowrap'
                   }}
                 >
                   {roleKey}
