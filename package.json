@@ -1,9 +1,14 @@
 {
-  "name": "agriwise-root",
+  "name": "agriwise",
   "version": "1.0.0",
+  "description": "AgriWise - Smart Agriculture, Farm Management & Market Intelligence Platform",
   "scripts": {
-    "dev": "npm --prefix agriwise-main run dev",
-    "backend": "npm --prefix agriwise-main run backend",
-    "frontend": "npm --prefix agriwise-main run frontend"
+    "dev": "concurrently -k -n \"BACKEND,FRONTEND\" -c \"blue,green\" \"npm run backend\" \"npm run frontend\"",
+    "build": "npm --prefix frontend run build",
+    "frontend": "npm --prefix frontend run dev",
+    "backend": "venv\\Scripts\\python.exe -m uvicorn backend.app.main:app --reload --reload-dir backend --port 8001"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
   }
 }
