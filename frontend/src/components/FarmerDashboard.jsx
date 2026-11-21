@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Activity, CloudSun, TrendingUp, AlertTriangle, ShieldCheck, 
   MapPin, Leaf, DollarSign, Calendar, ArrowRight, Zap, RefreshCw, ChevronRight,
-  CloudRain
+  CloudRain, Sparkles
 } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -139,33 +139,20 @@ export default function FarmerDashboard({ onNavigate }) {
         boxShadow: 'var(--shadow-sm)'
       }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-            <span style={{
-              background: '#eef5f1',
-              color: '#123524',
-              padding: '2px 8px',
-              borderRadius: '999px',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              border: '1px solid #c8dfd1'
-            }}>
-              🇮🇳 {currentLanguageObj.nativeName}
-            </span>
-          </div>
-          <h2 style={{ fontSize: '1.65rem', marginTop: '6px', color: '#123524', fontWeight: 800 }}>
-            {greeting} • {t('nav.overview', 'Farm Intelligence & Unified Signal Stream')}
+          <h2 style={{ fontSize: '1.65rem', marginTop: '4px', color: '#123524', fontWeight: 800 }}>
+            {greeting} • Dashboard
           </h2>
           <p style={{ color: '#45594e', fontSize: '0.88rem', maxWidth: '650px', marginTop: '2px' }}>
-            Aggregating localized soil data, real-time meteorological forecasts, disease surveillance, and regional mandi demand corridors into proactive recommendations.
+            Real-time farm intelligence, weather alerts, crop recommendations, and market trends.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button 
             className="btn-primary"
-            onClick={() => onNavigate('crops-recommend')}
+            onClick={() => onNavigate('recommendations')}
           >
-            <Zap size={16} /> Run Crop Advisory
+            <Sparkles size={16} /> View Recommendations
           </button>
           <button 
             className="btn-secondary"
@@ -533,7 +520,7 @@ export default function FarmerDashboard({ onNavigate }) {
         <div 
           className="interactive-metric-card"
           onClick={() => onNavigate('weather')}
-          title="Click to view Environmental Weather Predictor & India Soil Fertility Atlas"
+          title="Click to view Local Agricultural Weather & Rainfall Forecast"
           style={{
             background: '#ffffff',
             border: '1px solid rgba(18, 53, 36, 0.1)',

@@ -16,6 +16,8 @@ import BuyerOrdersView from './components/BuyerOrdersView';
 import FpoDashboard from './components/FpoDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import DeliveryDashboard from './components/DeliveryDashboard';
+import RecommendationsView from './components/RecommendationsView';
+import CreateProductView from './components/CreateProductView';
 import AuthModal from './components/AuthModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import RakshakFabWidget from './components/RakshakFabWidget';
@@ -26,7 +28,7 @@ import { useLanguage } from './i18n/LanguageContext';
 import { 
   Home, Activity, Layers, Sparkles, Camera, CloudSun, 
   TrendingUp, ShoppingBag, Package, Users, ShieldAlert,
-  Truck, Navigation, CheckCircle2
+  Truck, Navigation, CheckCircle2, Sprout, Plus
 } from 'lucide-react';
 
 export default function App() {
@@ -110,7 +112,8 @@ export default function App() {
         {
           group: t('nav.groupDecision', 'Decision Intelligence'),
           items: [
-            { id: 'crops-recommend', label: t('nav.cropsRecommend', 'Crop Advisory'), icon: <Sparkles size={16} /> },
+            { id: 'recommendations', label: t('nav.recommendations', 'Smart Recommendations'), icon: <Sparkles size={16} /> },
+            { id: 'crops-recommend', label: t('nav.cropsRecommend', 'Crop Advisory'), icon: <Sprout size={16} /> },
             { id: 'disease', label: t('nav.disease', 'Disease Scanner'), icon: <Camera size={16} /> },
             { id: 'weather', label: t('nav.weather', 'Weather & Soil'), icon: <CloudSun size={16} /> },
           ]
@@ -120,6 +123,7 @@ export default function App() {
           items: [
             { id: 'market', label: t('nav.market', 'Demand Forecast'), icon: <TrendingUp size={16} /> },
             { id: 'listings', label: t('nav.listings', 'Produce Listings'), icon: <ShoppingBag size={16} /> },
+            { id: 'create-product', label: t('nav.createProduct', 'Create a Product'), icon: <Plus size={16} /> },
             { id: 'orders', label: t('nav.orders', 'Orders Received'), icon: <Package size={16} /> },
           ]
         }
@@ -241,8 +245,16 @@ export default function App() {
             onOpenProfile={() => setShowProfileModal(true)}
           />
 
-          {/* Main Workspace Area (Header + Active Module Content) */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, width: 'calc(100% - 264px)', overflowX: 'hidden' }}>
+          {/* Main Workspace Area (Header + Active Module Content) with offset for Fixed Sidebar */}
+          <div style={{ 
+            flex: 1, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            minWidth: 0, 
+            marginLeft: '264px',
+            width: 'calc(100% - 264px)', 
+            overflowX: 'hidden' 
+          }}>
             <Navbar 
               isLanding={false}
               currentUser={currentUser}
@@ -260,13 +272,15 @@ export default function App() {
             <main style={{ flex: 1, padding: '20px 24px 60px', width: '100%', maxWidth: '1440px', boxSizing: 'border-box', margin: '0 auto' }}>
               <ErrorBoundary>
                 {activeTab === 'overview' && <FarmerDashboard onNavigate={setActiveTab} />}
+                {activeTab === 'recommendations' && <RecommendationsView onNavigate={setActiveTab} />}
                 {activeTab === 'farms' && <FarmManagement />}
                 {activeTab === 'crops-recommend' && <CropRecommendationView />}
                 {activeTab === 'disease' && <DiseaseScannerView />}
                 {activeTab === 'weather' && <WeatherCenterView />}
                 {activeTab === 'assistant' && <AgronomyAssistantView />}
                 {activeTab === 'market' && <MarketIntelligenceView />}
-                {activeTab === 'listings' && <FarmerListingsView />}
+                {activeTab === 'listings' && <FarmerListingsView onNavigate={setActiveTab} />}
+                {activeTab === 'create-product' && <CreateProductView onNavigate={setActiveTab} />}
                 {activeTab === 'orders' && <FarmerOrdersView />}
                 {activeTab === 'marketplace' && <MarketplaceBuyer onNavigate={setActiveTab} />}
                 {activeTab === 'buyer-orders' && <BuyerOrdersView onNavigate={setActiveTab} />}

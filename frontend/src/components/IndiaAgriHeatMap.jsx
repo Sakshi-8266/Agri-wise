@@ -283,28 +283,28 @@ export default function IndiaAgriHeatMap({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{
-              background: '#fef3c7',
-              color: '#92400e',
-              border: '1px solid #fde68a',
+              background: '#ecfdf5',
+              color: '#065f46',
+              border: '1px solid #a7f3d0',
               fontSize: '0.68rem',
               fontWeight: 800,
               padding: '2px 8px',
               borderRadius: '999px',
               textTransform: 'uppercase'
             }}>
-              Interactive Soil & Climate Atlas
+              Interactive India Agricultural Map
             </span>
             {userLocationName && (
               <span style={{ fontSize: '0.76rem', color: '#10b981', fontWeight: 600 }}>
-                📍 GPS Synced: {userLocationName}
+                📍 GPS Pin: {userLocationName}
               </span>
             )}
           </div>
           <h3 style={{ fontSize: '1.2rem', color: '#123524', fontWeight: 800, marginTop: '4px' }}>
-            Agro-Climatic Heat Map of India
+            Interactive India Regional Map
           </h3>
           <p style={{ fontSize: '0.8rem', color: '#576c60' }}>
-            Click any agro-climatic belt below to immediately load regional soil properties, pH levels, and AI seasonal crop recommendations.
+            Select Indian State & City, search mandi hubs, or auto-detect your location to pinpoint your farm dynamically.
           </p>
         </div>
 

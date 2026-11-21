@@ -29,14 +29,16 @@ export default function Navbar({
   const [unreadCount, setUnreadCount] = useState(0);
   const { t } = useLanguage();
 
-  // Profile dropdown & modal state
+  // Profile & Role dropdown states
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [internalShowProfileModal, setInternalShowProfileModal] = useState(false);
   const isProfileModalOpen = externalShowProfileModal !== undefined ? externalShowProfileModal : internalShowProfileModal;
   const setProfileModalOpen = externalSetShowProfileModal || setInternalShowProfileModal;
   const [profileData, setProfileData] = useState(null);
 
   const profileRef = useRef(null);
+  const roleRef = useRef(null);
   const notifRef = useRef(null);
 
   useEffect(() => {
@@ -51,6 +53,9 @@ export default function Navbar({
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setShowProfileDropdown(false);
+      }
+      if (roleRef.current && !roleRef.current.contains(e.target)) {
+        setShowRoleDropdown(false);
       }
       if (notifRef.current && !notifRef.current.contains(e.target)) {
         setShowNotifs(false);
@@ -149,53 +154,90 @@ export default function Navbar({
             <CustomAgriLogo size={38} variant="full" />
           </div>
 
-          {/* Right Controls: Location Pill + Language Selector + Role Switcher Demo Buttons + Sign In / Dashboard Shortcut */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          {/* Right Controls: Location Pill + Language Selector + Dynamic Role Selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <LocationBanner variant="compact" />
-            <LanguageSelector variant="dropdown" />
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              background: '#eef3ef',
-              border: '1px solid rgba(27, 56, 43, 0.08)',
-              borderRadius: '999px',
-              padding: '4px 6px',
-              gap: '4px'
-            }}>
-              <span style={{ 
-                fontSize: '0.68rem', 
-                color: '#657a6f', 
-                paddingLeft: '10px', 
-                paddingRight: '6px', 
-                fontWeight: 700, 
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase'
-              }}>
-                ROLE:
-              </span>
-              {Object.keys(DEMO_ACCOUNTS).map(roleKey => {
-                const isActive = currentRole === roleKey;
-                return (
-                  <button
-                    key={roleKey}
-                    onClick={() => onRoleSwitch(roleKey)}
-                    style={{
-                      background: isActive ? '#1b382b' : 'transparent',
-                      color: isActive ? '#ffffff' : '#4a5c52',
-                      border: 'none',
-                      padding: '6px 14px',
-                      borderRadius: '999px',
-                      fontSize: '0.78rem',
-                      fontWeight: isActive ? 700 : 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                      boxShadow: isActive ? '0 2px 8px rgba(27, 56, 43, 0.2)' : 'none'
-                    }}
-                  >
-                    {roleKey}
-                  </button>
-                );
-              })}
+            <LanguageSelector variant="toggle" />
+            
+            {/* Single Clean Role Dropdown Selector */}
+            <div ref={roleRef} style={{ position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => setShowRoleDropdown(!showRoleDropdown)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#f2f7f4',
+                  border: '1px solid rgba(18, 53, 36, 0.14)',
+                  borderRadius: '999px',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  fontSize: '0.78rem',
+                  color: '#123524',
+                  fontWeight: 700,
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span style={{ color: '#527964', fontWeight: 600, fontSize: '0.72rem' }}>Role:</span>
+                <strong style={{ color: '#10b981' }}>{currentRole}</strong>
+                <ChevronDown size={13} color="#527964" />
+              </button>
+
+              {showRoleDropdown && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  right: 0,
+                  width: '180px',
+                  background: '#ffffff',
+                  border: '1px solid rgba(18, 53, 36, 0.12)',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 28px rgba(18, 53, 36, 0.15)',
+                  padding: '6px',
+                  zIndex: 300,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px'
+                }}>
+                  <div style={{ fontSize: '0.64rem', color: '#657e70', fontWeight: 700, padding: '4px 8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Select Role
+                  </div>
+                  {Object.keys(DEMO_ACCOUNTS).map(roleKey => {
+                    const isActive = currentRole === roleKey;
+                    return (
+                      <button
+                        key={roleKey}
+                        type="button"
+                        onClick={() => {
+                          onRoleSwitch(roleKey);
+                          setShowRoleDropdown(false);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '7px 10px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: isActive ? '#eef6f1' : 'transparent',
+                          color: isActive ? '#123524' : '#394d41',
+                          fontSize: '0.78rem',
+                          fontWeight: isActive ? 800 : 500,
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'background 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = '#f6faf7'; }}
+                        onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <span>{roleKey}</span>
+                        {isActive && <CheckCircle2 size={13} color="#10b981" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {currentUser ? (
@@ -278,43 +320,90 @@ export default function Navbar({
           </h2>
         </div>
 
-        {/* Right Controls: Location Pill + Role Switcher + Notifications + Profile Dropdown */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0, justifyContent: 'flex-end' }}>
+        {/* Right Controls: Location Pill + Language Toggle + Clean Role Dropdown + Notifications + Profile Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, justifyContent: 'flex-end' }}>
           <LocationBanner variant="compact" />
-          {/* Role Switcher in Organic Pill Shape */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            background: '#eef3ef',
-            border: '1px solid rgba(27, 56, 43, 0.08)',
-            borderRadius: '999px',
-            padding: '2px 4px',
-            gap: '2px'
-          }}>
-            {Object.keys(DEMO_ACCOUNTS).map(roleKey => {
-              const isActive = currentRole === roleKey;
-              return (
-                <button
-                  key={roleKey}
-                  onClick={() => onRoleSwitch(roleKey)}
-                  style={{
-                    background: isActive ? '#1b382b' : 'transparent',
-                    color: isActive ? '#ffffff' : '#4a5c52',
-                    border: 'none',
-                    padding: '4px 10px',
-                    borderRadius: '999px',
-                    fontSize: '0.72rem',
-                    fontWeight: isActive ? 700 : 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
-                    boxShadow: isActive ? '0 2px 6px rgba(27, 56, 43, 0.2)' : 'none',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {roleKey}
-                </button>
-              );
-            })}
+          <LanguageSelector variant="toggle" />
+
+          {/* Single Clean Role Dropdown Selector */}
+          <div ref={roleRef} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setShowRoleDropdown(!showRoleDropdown)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                background: '#f2f7f4',
+                border: '1px solid rgba(18, 53, 36, 0.14)',
+                borderRadius: '999px',
+                padding: '5px 11px',
+                cursor: 'pointer',
+                fontSize: '0.74rem',
+                color: '#123524',
+                fontWeight: 700,
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <span style={{ color: '#527964', fontWeight: 600, fontSize: '0.68rem' }}>Role:</span>
+              <strong style={{ color: '#10b981' }}>{currentRole}</strong>
+              <ChevronDown size={12} color="#527964" />
+            </button>
+
+            {showRoleDropdown && (
+              <div style={{
+                position: 'absolute',
+                top: 'calc(100% + 6px)',
+                right: 0,
+                width: '180px',
+                background: '#ffffff',
+                border: '1px solid rgba(18, 53, 36, 0.12)',
+                borderRadius: '12px',
+                boxShadow: '0 10px 28px rgba(18, 53, 36, 0.15)',
+                padding: '6px',
+                zIndex: 300,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '2px'
+              }}>
+                <div style={{ fontSize: '0.64rem', color: '#657e70', fontWeight: 700, padding: '4px 8px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Switch Role
+                </div>
+                {Object.keys(DEMO_ACCOUNTS).map(roleKey => {
+                  const isActive = currentRole === roleKey;
+                  return (
+                    <button
+                      key={roleKey}
+                      type="button"
+                      onClick={() => {
+                        onRoleSwitch(roleKey);
+                        setShowRoleDropdown(false);
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '7px 10px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: isActive ? '#eef6f1' : 'transparent',
+                        color: isActive ? '#123524' : '#394d41',
+                        fontSize: '0.78rem',
+                        fontWeight: isActive ? 800 : 500,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'background 0.15s ease'
+                      }}
+                      onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = '#f6faf7'; }}
+                      onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <span>{roleKey}</span>
+                      {isActive && <CheckCircle2 size={13} color="#10b981" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Notifications */}

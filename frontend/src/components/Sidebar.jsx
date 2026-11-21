@@ -28,8 +28,10 @@ export default function Sidebar({
       minWidth: '264px',
       height: '100vh',
       maxHeight: '100vh',
-      position: 'sticky',
+      position: 'fixed',
       top: 0,
+      left: 0,
+      bottom: 0,
       background: '#ffffff',
       borderRight: '1px solid rgba(18, 53, 36, 0.08)',
       display: 'flex',
@@ -160,82 +162,18 @@ export default function Sidebar({
         ))}
       </div>
 
-      {/* Pinned Bottom Footer: Language Preference Card + User Profile */}
+      {/* Pinned Bottom Footer: Language Toggle + User Profile */}
       <div style={{
         flexShrink: 0,
         borderTop: '1px solid rgba(18, 53, 36, 0.08)',
         background: '#fafcf9'
       }}>
-        {/* Quick Language Preference Card */}
-        <div style={{ padding: '8px 10px 4px' }}>
-          <button
-            onClick={() => setShowLangModal(true)}
-            type="button"
-            title="Click to change language / भाषा बदलें"
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              background: '#f2f7f4',
-              border: '1px solid rgba(18, 53, 36, 0.1)',
-              borderRadius: '9px',
-              padding: '7px 9px',
-              cursor: 'pointer',
-              textAlign: 'left',
-              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#eaf4ee';
-              e.currentTarget.style.borderColor = '#10b981';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#f2f7f4';
-              e.currentTarget.style.borderColor = 'rgba(18, 53, 36, 0.1)';
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-              <span style={{ fontSize: '1.1rem' }}>🇮🇳</span>
-              <div style={{ minWidth: 0 }}>
-                <div style={{
-                  fontSize: '0.58rem',
-                  color: '#657c70',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em'
-                }}>
-                  {t('common.language', 'Language')}
-                </div>
-                <div style={{
-                  fontSize: '0.82rem',
-                  fontWeight: 800,
-                  color: '#123524',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}>
-                  {currentLanguageObj.nativeName}
-                </div>
-              </div>
-            </div>
-
-            <span style={{
-              background: '#ffffff',
-              border: '1px solid rgba(18, 53, 36, 0.12)',
-              color: '#123524',
-              padding: '2px 7px',
-              borderRadius: '999px',
-              fontSize: '0.68rem',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              flexShrink: 0
-            }}>
-              <Languages size={11} />
-              {t('common.edit', 'Change')}
-            </span>
-          </button>
+        {/* Clean 2-Way Language Toggle (English & Hindi) */}
+        <div style={{ padding: '10px 12px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '0.72rem', color: '#576c60', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            {t('common.language', 'Language')}
+          </span>
+          <LanguageSelector variant="toggle" />
         </div>
 
         {/* User Card & Logout */}

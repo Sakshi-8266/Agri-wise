@@ -6,6 +6,7 @@ from ..database import get_db
 from ..models import ChatConversation, ChatMessage, User
 from ..schemas import ChatQueryRequest, ChatQueryResponse
 from ..services.rag_assistant import rag_service
+from ..services.elevenlabs_service import elevenlabs_service
 from ..auth import get_current_user, get_optional_current_user
 
 router = APIRouter(prefix="/assistant", tags=["AI Farmer Assistant (RAG)"])
@@ -103,3 +104,75 @@ def get_conversation_messages(
         }
         for m in messages
     ]
+
+@router.delete("/conversations/{conversation_id}")
+def delete_user_conversation(
+    conversation_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    conv = db.query(ChatConversation).filter(
+        ChatConversation.id == conversation_id,
+        ChatConversation.user_id == current_user.id
+    ).first()
+    if conv:
+        db.query(ChatMessage).filter(ChatMessage.conversation_id == conv.id).delete()
+        db.delete(conv)
+        db.commit()
+    return {"success": True}
+
+@router.delete("/conversations")
+def clear_all_user_conversations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    convs = db.query(ChatConversation).filter(ChatConversation.user_id == current_user.id).all()
+    conv_ids = [c.id for c in convs]
+    if conv_ids:
+        db.query(ChatMessage).filter(ChatMessage.conversation_id.in_(conv_ids)).delete(synchronize_session=False)
+        db.query(ChatConversation).filter(ChatConversation.user_id == current_user.id).delete(synchronize_session=False)
+        db.commit()
+    return {"success": True}
+
+# --- ElevenLabs Conversational Voice Agent Endpoints ---
+
+@router.get("/elevenlabs/config")
+def get_elevenlabs_config():
+    """Returns safe connection state and setup instructions for ElevenLabs Voice Agent."""
+    return elevenlabs_service.get_config()
+
+@router.get("/elevenlabs/signed-url")
+def get_elevenlabs_signed_url(agent_id: Optional[str] = None):
+    """
+    Secure backend integration using ElevenLabs API and Agent ID through environment variables.
+    Never exposes API keys on the frontend.
+    """
+    return elevenlabs_service.get_signed_url(agent_id=agent_id)
+
+@router.get("/elevenlabs/context")
+def get_elevenlabs_farmer_context(
+    location: Optional[str] = "Meerut, Uttar Pradesh",
+    lat: Optional[float] = None,
+    lon: Optional[float] = None,
+    current_user: Optional[User] = Depends(get_optional_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Integrates live Agriwise weather, standing crops, and agricultural telemetry into
+    personalized conversational context for ElevenLabs Voice Agent.
+    """
+    return elevenlabs_service.get_farmer_context(
+        db=db, user=current_user, location_name=location, lat=lat, lon=lon
+    )
+
+@router.post("/elevenlabs/tts")
+def synthesize_elevenlabs_speech(payload: dict):
+    """
+    Provides natural, human-like voice responses in Hindi and English using ElevenLabs TTS.
+    """
+    text = payload.get("text", "")
+    voice_id = payload.get("voice_id")
+    if not text:
+        return {"success": False, "error": "No text provided"}
+    return elevenlabs_service.text_to_speech(text=text, voice_id=voice_id)
+

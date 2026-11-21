@@ -192,6 +192,8 @@ export const api = {
   chatAssistant: (message, conversation_id) => api.request('/assistant/chat', { method: 'POST', body: JSON.stringify({ message, conversation_id }) }),
   getConversations: () => api.request('/assistant/conversations'),
   getConversationMessages: (id) => api.request(`/assistant/conversations/${id}`),
+  deleteConversation: (id) => api.request(`/assistant/conversations/${id}`, { method: 'DELETE' }),
+  clearAllConversations: () => api.request('/assistant/conversations', { method: 'DELETE' }),
 
   // Market
   getCommodities: () => api.request('/market/commodities'),
@@ -250,5 +252,25 @@ export const api = {
   getDeliveryRouteOptimization: (id) => api.request(`/delivery/orders/${id}/route`),
   getDeliveryCheckpoints: (id) => api.request(`/delivery/orders/${id}/checkpoints`),
   getDeliveryTelemetry: () => api.request('/delivery/telemetry/overview'),
+
+  // ElevenLabs Conversational Voice Assistant
+  getElevenLabsConfig: () => api.request('/assistant/elevenlabs/config'),
+  getElevenLabsSignedUrl: (agentId) => {
+    const qs = agentId ? `?agent_id=${encodeURIComponent(agentId)}` : '';
+    return api.request(`/assistant/elevenlabs/signed-url${qs}`);
+  },
+  getElevenLabsFarmerContext: (location, lat, lon) => {
+    const params = new URLSearchParams();
+    if (location) params.append('location', location);
+    if (lat) params.append('lat', lat);
+    if (lon) params.append('lon', lon);
+    const qs = params.toString();
+    return api.request(`/assistant/elevenlabs/context${qs ? '?' + qs : ''}`);
+  },
+  synthesizeElevenLabsSpeech: (text, voiceId) => 
+    api.request('/assistant/elevenlabs/tts', {
+      method: 'POST',
+      body: JSON.stringify({ text, voice_id: voiceId })
+    }),
 };
 

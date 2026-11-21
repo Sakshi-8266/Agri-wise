@@ -2,20 +2,25 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   X, Minimize2, Maximize2, Send, Bot, User, 
   Sparkles, RefreshCw, Layers, ShieldCheck, ChevronDown, 
-  MapPin, AlertCircle, Leaf, MessageSquare, Mic, MicOff, Volume2, VolumeX
+  MapPin, AlertCircle, Leaf, MessageSquare, Mic, MicOff, Volume2, VolumeX, RotateCcw,
+  Play, Square
 } from 'lucide-react';
 import { api } from '../api';
 import { useLanguage } from '../i18n/LanguageContext';
 import CustomAgriLogo from './CustomAgriLogo';
 import WavyProgressLoader from './WavyProgressLoader';
+import ElevenLabsVoiceAssistant from './ElevenLabsVoiceAssistant';
 
 export default function RakshakFabWidget() {
   const { t, currentLanguageObj, greeting } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [activeMode, setActiveMode] = useState('voice'); // 'voice' (ElevenLabs) | 'chat' (RAG)
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorState, setErrorState] = useState(null);
+  const [lastQuery, setLastQuery] = useState('');
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [farmerData, setFarmerData] = useState({ name: 'Ramesh Patel', farm: null, crops: [] });
   const messagesEndRef = useRef(null);
@@ -154,11 +159,25 @@ export default function RakshakFabWidget() {
       setMessages([
         {
           sender_role: 'assistant',
-          content: `${greetWord} ${cleanName} ji! 🙏\n\nI am your persistent **Rakshak AI** copilot. I am synced with **${farmName}** (${farmArea}, ${location}) and your standing crops: **${cropSummary}**.\n\nYou can consult me anytime across any page for fertilizer plans, spray timings, market price forecasts, or disease remedies!`
+          content: `${greetWord} ${cleanName} ji! 🙏\n\nI am your persistent **Rakshak AI** copilot. I am synced with **${farmName}** (${farmArea}, ${location}) and your standing crops: **${cropSummary}**.\n\nYou can consult me anytime across any page for fertilizer plans, spray timings, market price forecasts, or disease remedies!`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleClearChat = () => {
+    setActiveConversationId(null);
+    setErrorState(null);
+    setInput('');
+    loadDossier();
+  };
+
+  const handleRetry = () => {
+    if (lastQuery) {
+      handleSendMessage(lastQuery);
     }
   };
 
@@ -172,7 +191,10 @@ export default function RakshakFabWidget() {
     const query = textToSend || input;
     if (!query.trim()) return;
 
-    const userMsg = { sender_role: 'user', content: query };
+    setLastQuery(query);
+    setErrorState(null);
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userMsg = { sender_role: 'user', content: query, timestamp: nowTime };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
@@ -184,13 +206,16 @@ export default function RakshakFabWidget() {
       }
       setMessages(prev => [...prev, {
         sender_role: 'assistant',
-        content: res.reply || 'Analysis completed for your query.',
-        sources: res.sources || []
+        content: res.response || res.reply || 'Analysis completed for your query.',
+        sources: res.sources || [],
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
-    } catch {
+    } catch (err) {
+      setErrorState(err.message || 'Error communicating with agricultural knowledge engine.');
       setMessages(prev => [...prev, {
         sender_role: 'assistant',
-        content: 'I encountered a temporary communication hitch. Please verify your query or try again in a moment.'
+        content: 'I encountered a temporary communication hitch. Please verify your query or try again in a moment.',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
     } finally {
       setLoading(false);
@@ -205,82 +230,66 @@ export default function RakshakFabWidget() {
 
   return (
     <div style={{ position: 'fixed', bottom: '26px', right: '26px', zIndex: 1200 }}>
-      {/* Floating Action Button (FAB) when collapsed */}
+      {/* Floating Action Button (FAB) when collapsed - Prominent High-Contrast AI Copilot */}
       {!isOpen && (
         <button
           type="button"
           onClick={() => { setIsOpen(true); setIsMinimized(false); }}
           className="rakshak-fab-button"
-          title="Open Rakshak AI Copilot"
+          title="Rakshak AI Copilot • Multilingual Voice & Crop Intelligence"
           style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #092619 0%, #164e34 100%)',
+            color: '#ffffff',
+            border: '2.5px solid #f59e0b',
+            boxShadow: '0 8px 28px rgba(18, 53, 36, 0.45), 0 0 22px rgba(245, 158, 11, 0.35)',
+            cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            background: 'linear-gradient(135deg, #0f291e 0%, #16382a 100%)',
-            color: '#ffffff',
-            padding: '10px 18px 10px 12px',
-            borderRadius: '999px',
-            border: '2px solid rgba(245, 158, 11, 0.45)',
-            boxShadow: '0 8px 30px rgba(18, 53, 36, 0.35), 0 2px 8px rgba(245, 158, 11, 0.25)',
-            cursor: 'pointer',
+            justifyContent: 'center',
+            position: 'relative',
             transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-            transform: 'scale(1)'
+            padding: 0
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-3px) scale(1.03)';
-            e.currentTarget.style.borderColor = '#f59e0b';
-            e.currentTarget.style.boxShadow = '0 12px 36px rgba(18, 53, 36, 0.45), 0 4px 14px rgba(245, 158, 11, 0.4)';
+            e.currentTarget.style.transform = 'scale(1.12) translateY(-2px)';
+            e.currentTarget.style.borderColor = '#fbbf24';
+            e.currentTarget.style.boxShadow = '0 12px 36px rgba(18, 53, 36, 0.55), 0 0 28px rgba(245, 158, 11, 0.5)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.45)';
-            e.currentTarget.style.boxShadow = '0 8px 30px rgba(18, 53, 36, 0.35), 0 2px 8px rgba(245, 158, 11, 0.25)';
+            e.currentTarget.style.transform = 'scale(1) translateY(0)';
+            e.currentTarget.style.borderColor = '#f59e0b';
+            e.currentTarget.style.boxShadow = '0 8px 28px rgba(18, 53, 36, 0.45), 0 0 22px rgba(245, 158, 11, 0.35)';
           }}
         >
-          {/* Bespoke Custom AI Logo (Replacing generic stars) */}
-          <div style={{ position: 'relative' }}>
-            <CustomAgriLogo size={32} variant="icon" />
-            <span 
-              style={{
-                position: 'absolute',
-                top: '-2px',
-                right: '-2px',
-                width: '10px',
-                height: '10px',
-                background: '#f59e0b',
-                borderRadius: '50%',
-                border: '2px solid #0f291e'
-              }} 
-            />
-          </div>
-
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ 
-              fontSize: '0.88rem', 
-              fontWeight: 800, 
-              color: '#ffffff',
-              letterSpacing: '-0.01em',
+          {/* Prominent Custom Agricultural AI Logo */}
+          <CustomAgriLogo size={30} variant="icon" />
+          
+          {/* Prominent High-Contrast AI Badge */}
+          <span 
+            style={{
+              position: 'absolute',
+              top: '-4px',
+              right: '-4px',
+              background: '#f59e0b',
+              color: '#092619',
+              fontSize: '0.62rem',
+              fontWeight: 900,
+              padding: '1px 5px',
+              borderRadius: '999px',
+              border: '2px solid #092619',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+              letterSpacing: '0.04em',
               display: 'flex',
               alignItems: 'center',
-              gap: '6px'
-            }}>
-              Rakshak AI
-              <span style={{
-                background: '#f59e0b',
-                color: '#123524',
-                fontSize: '0.62rem',
-                fontWeight: 800,
-                padding: '1px 6px',
-                borderRadius: '6px',
-                textTransform: 'uppercase'
-              }}>
-                Active
-              </span>
-            </div>
-            <div style={{ fontSize: '0.68rem', color: '#9bc4af', fontWeight: 500 }}>
-              {farmerData.name ? `${farmerData.name}'s Copilot` : 'Agronomic Assistant'}
-            </div>
-          </div>
+              gap: '3px'
+            }} 
+          >
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+            AI
+          </span>
         </button>
       )}
 
@@ -289,18 +298,18 @@ export default function RakshakFabWidget() {
         <div 
           className="rakshak-modal-window animate-scale-in"
           style={{
-            width: isMinimized ? '320px' : '440px',
+            width: isMinimized ? '300px' : '410px',
             maxWidth: 'calc(100vw - 32px)',
-            height: isMinimized ? '58px' : '640px',
+            height: isMinimized ? '52px' : '590px',
             maxHeight: 'calc(100vh - 80px)',
             background: '#ffffff',
-            borderRadius: '20px',
+            borderRadius: '18px',
             border: '1px solid rgba(27, 56, 43, 0.14)',
-            boxShadow: '0 20px 50px rgba(18, 53, 36, 0.25), 0 4px 16px rgba(0, 0, 0, 0.08)',
+            boxShadow: '0 16px 44px rgba(18, 53, 36, 0.25), 0 4px 14px rgba(0, 0, 0, 0.08)',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+            transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
           {/* Header Bar */}
@@ -364,7 +373,11 @@ export default function RakshakFabWidget() {
               </button>
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                  setSpeakingIdx(null);
+                  setIsOpen(false);
+                }}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -383,26 +396,134 @@ export default function RakshakFabWidget() {
           {/* Body Section (Hidden when minimized) */}
           {!isMinimized && (
             <>
-              {/* Context Strip */}
+              {/* Mode Switcher Bar */}
               <div style={{
-                background: '#f4f8f5',
-                padding: '6px 14px',
-                borderBottom: '1px solid rgba(27, 56, 43, 0.08)',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                fontSize: '0.72rem',
-                color: '#2d5740',
-                fontWeight: 600
+                background: '#eef5f1',
+                borderBottom: '1px solid rgba(27, 56, 43, 0.1)',
+                padding: '4px 8px',
+                gap: '6px',
+                flexShrink: 0
               }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <ShieldCheck size={13} color="#10b981" />
-                  ICAR/CIBRC Knowledge Core Active
-                </span>
-                <span style={{ color: '#688273' }}>
-                  🇮🇳 {currentLanguageObj?.name || 'English'}
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveMode('voice')}
+                  style={{
+                    flex: 1,
+                    padding: '6px 10px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: activeMode === 'voice' ? '#123524' : 'transparent',
+                    color: activeMode === 'voice' ? '#ffffff' : '#33503f',
+                    fontSize: '0.76rem',
+                    fontWeight: activeMode === 'voice' ? 800 : 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <Sparkles size={14} color={activeMode === 'voice' ? '#f59e0b' : '#10b981'} />
+                  ElevenLabs Voice Agent
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveMode('chat')}
+                  style={{
+                    flex: 1,
+                    padding: '6px 10px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: activeMode === 'chat' ? '#123524' : 'transparent',
+                    color: activeMode === 'chat' ? '#ffffff' : '#33503f',
+                    fontSize: '0.76rem',
+                    fontWeight: activeMode === 'chat' ? 800 : 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <MessageSquare size={14} />
+                  Kisan Agri Chat
+                </button>
               </div>
+
+              {activeMode === 'voice' ? (
+                <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+                  <ElevenLabsVoiceAssistant variant="compact" onClose={() => {
+                    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                    setSpeakingIdx(null);
+                    setIsOpen(false);
+                  }} />
+                </div>
+              ) : (
+                <>
+                  {/* Context Strip with Clear Chat & Stop Voice */}
+                  <div style={{
+                    background: '#f4f8f5',
+                    padding: '6px 14px',
+                    borderBottom: '1px solid rgba(27, 56, 43, 0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '0.72rem',
+                    color: '#2d5740',
+                    fontWeight: 600
+                  }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <ShieldCheck size={13} color="#10b981" />
+                      ICAR Knowledge Core Active
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {speakingIdx !== null && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                            setSpeakingIdx(null);
+                          }}
+                          style={{
+                            background: '#fee2e2',
+                            border: '1px solid #f87171',
+                            color: '#dc2626',
+                            borderRadius: '999px',
+                            padding: '1px 8px',
+                            fontSize: '0.68rem',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Square size={9} fill="#dc2626" />
+                          <span>Stop Voice / रोकें</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleClearChat}
+                        title="Clear chat history"
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#688273',
+                          cursor: 'pointer',
+                          fontSize: '0.72rem',
+                          fontWeight: 700
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#dc2626'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#688273'}
+                      >
+                        Clear Chat
+                      </button>
+                    </div>
+                  </div>
 
               {/* Messages Area */}
               <div style={{
@@ -447,14 +568,14 @@ export default function RakshakFabWidget() {
                             <button
                               type="button"
                               onClick={() => handleSpeakMessage(m.content, idx)}
-                              title="Listen to advice (आवाज़ में सुनें)"
+                              title={speakingIdx === idx ? "Stop Voice (आवाज़ रोकें)" : "Listen to advice (आवाज़ में सुनें)"}
                               style={{
-                                background: speakingIdx === idx ? '#fef3c7' : '#f0f5f2',
-                                border: speakingIdx === idx ? '1px solid #f59e0b' : '1px solid rgba(18, 53, 36, 0.12)',
+                                background: speakingIdx === idx ? '#fee2e2' : '#f0fdf4',
+                                border: speakingIdx === idx ? '1px solid #f87171' : '1px solid #bbf7d0',
                                 borderRadius: '999px',
-                                padding: '2px 8px',
+                                padding: '2px 9px',
                                 fontSize: '0.68rem',
-                                color: speakingIdx === idx ? '#b45309' : '#123524',
+                                color: speakingIdx === idx ? '#dc2626' : '#059669',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '4px',
@@ -462,9 +583,20 @@ export default function RakshakFabWidget() {
                                 fontWeight: 700
                               }}
                             >
-                              {speakingIdx === idx ? <VolumeX size={12} color="#b45309" /> : <Volume2 size={12} color="#10b981" />}
-                              <span>{speakingIdx === idx ? 'Stop Audio' : 'Listen / सुनें'}</span>
+                              {speakingIdx === idx ? <Square size={10} fill="currentColor" /> : <Play size={10} fill="currentColor" />}
+                              <span>{speakingIdx === idx ? 'Stop / रोकें' : 'Play / सुनें'}</span>
                             </button>
+                          </div>
+                        )}
+                        {/* Message Timestamp */}
+                        {m.timestamp && (
+                          <div style={{
+                            fontSize: '0.62rem',
+                            color: isUser ? '#a7f3d0' : '#94a3b8',
+                            marginTop: '4px',
+                            textAlign: isUser ? 'right' : 'left'
+                          }}>
+                            {m.timestamp}
                           </div>
                         )}
                       </div>
@@ -513,6 +645,42 @@ export default function RakshakFabWidget() {
                     />
                   </div>
                 )}
+                {errorState && (
+                  <div style={{
+                    padding: '8px 12px',
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '10px',
+                    color: '#991b1b',
+                    fontSize: '0.74rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '6px'
+                  }}>
+                    <span>{errorState}</span>
+                    <button
+                      type="button"
+                      onClick={handleRetry}
+                      style={{
+                        background: '#dc2626',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '2px 6px',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                      }}
+                    >
+                      <RotateCcw size={10} /> Retry
+                    </button>
+                  </div>
+                )}
+
                 <div ref={messagesEndRef} />
               </div>
 
@@ -682,8 +850,11 @@ export default function RakshakFabWidget() {
               </form>
             </>
           )}
-        </div>
+        </>
       )}
     </div>
+  )}
+</div>
+
   );
 }

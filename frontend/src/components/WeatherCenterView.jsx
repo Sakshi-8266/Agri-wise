@@ -343,64 +343,29 @@ export default function WeatherCenterView() {
             Actionable Agricultural Weather Center
           </h2>
           <p style={{ color: '#45594e', fontSize: '0.9rem', maxWidth: '780px', marginTop: '2px' }}>
-            Replaced static hardcoded data with live Open-Meteo satellite feeds, providing real-time chemical spray advisories, irrigation windows, and the National Soil Fertility Atlas.
+            Live Open-Meteo satellite weather telemetry, rainfall forecasts, and field irrigation advisories.
           </p>
         </div>
 
-        {/* View Switcher Tabs */}
+        {/* Live Status Badge */}
         <div style={{
           display: 'flex',
-          background: '#edf5f0',
-          border: '1px solid rgba(18, 53, 36, 0.1)',
+          background: '#eef5f1',
+          padding: '6px 14px',
           borderRadius: '999px',
-          padding: '4px',
-          gap: '4px'
+          border: '1px solid rgba(18, 53, 36, 0.12)',
+          fontSize: '0.8rem',
+          color: '#123524',
+          fontWeight: 700,
+          alignItems: 'center',
+          gap: '6px'
         }}>
-          <button
-            type="button"
-            onClick={() => setActiveTab('live_weather')}
-            style={{
-              background: activeTab === 'live_weather' ? '#123524' : 'transparent',
-              color: activeTab === 'live_weather' ? '#ffffff' : '#3d5246',
-              border: 'none',
-              padding: '8px 16px',
-              borderRadius: '999px',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <CloudSun size={15} /> Live Weather Station
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('soil')}
-            style={{
-              background: activeTab === 'soil' ? '#123524' : 'transparent',
-              color: activeTab === 'soil' ? '#ffffff' : '#3d5246',
-              border: 'none',
-              padding: '8px 16px',
-              borderRadius: '999px',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
-            }}
-          >
-            <Layers size={15} /> India Soil Fertility Atlas
-          </button>
+          <CloudSun size={15} color="#10b981" /> Live Open-Meteo Satellite Feed
         </div>
       </div>
 
-      {/* MODULE 1: LIVE ACTIONABLE WEATHER STATION */}
-      {activeTab === 'live_weather' && (
-        <div className="animate-fade-in">
+      {/* LIVE ACTIONABLE WEATHER STATION */}
+      <div className="animate-fade-in">
           {weatherLoading && (
             <div style={{ marginBottom: '20px' }}>
               <WavyProgressLoader text="Connecting to Open-Meteo atmospheric radar & local sensors..." />
@@ -657,149 +622,6 @@ export default function WeatherCenterView() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* MODULE 2: INTERACTIVE INDIA SOIL FERTILITY ATLAS */}
-      {activeTab === 'soil' && (
-        <div className="animate-fade-in">
-          {/* Soil Banner */}
-          <div style={{
-            background: 'linear-gradient(135deg, #ffffff 0%, #faf8f2 100%)',
-            border: '1px solid rgba(18, 53, 36, 0.12)',
-            borderRadius: '18px',
-            padding: '24px 28px',
-            marginBottom: '24px'
-          }}>
-            <h3 style={{ fontSize: '1.35rem', color: '#123524', fontWeight: 800 }}>
-              National Agricultural Soil Fertility Atlas (ICAR Survey 2026)
-            </h3>
-            <p style={{ color: '#45594e', fontSize: '0.88rem', maxWidth: '850px', marginTop: '4px' }}>
-              Select any agro-climatic zone across India to inspect soil classification, natural pH profiles, macronutrient saturation (N-P-K), micronutrient deficiencies, and tailored reclamation guidelines.
-            </p>
-
-            {/* Region Pills */}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '16px' }}>
-              {INDIA_SOIL_REGIONS.map((reg) => {
-                const isSelected = selectedSoilRegion.id === reg.id;
-                return (
-                  <button
-                    key={reg.id}
-                    type="button"
-                    onClick={() => setSelectedSoilRegion(reg)}
-                    style={{
-                      padding: '7px 14px',
-                      borderRadius: '999px',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      border: isSelected ? '1px solid #123524' : '1px solid rgba(18, 53, 36, 0.14)',
-                      background: isSelected ? '#123524' : '#ffffff',
-                      color: isSelected ? '#ffffff' : '#3d5246',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    {reg.name.split(' (')[0]} ({reg.fertilityScore}/100)
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Active Soil Region Details */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '18px',
-            border: '1px solid rgba(18, 53, 36, 0.12)',
-            padding: '28px',
-            boxShadow: 'var(--shadow-sm)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <span style={{
-                  background: '#eef5f1',
-                  color: '#123524',
-                  fontSize: '0.72rem',
-                  fontWeight: 800,
-                  padding: '3px 10px',
-                  borderRadius: '999px',
-                  border: '1px solid #bce1ce'
-                }}>
-                  {selectedSoilRegion.fertilityRating}
-                </span>
-                <h4 style={{ fontSize: '1.6rem', color: '#123524', fontWeight: 800, marginTop: '8px' }}>
-                  {selectedSoilRegion.name}
-                </h4>
-                <p style={{ fontSize: '0.84rem', color: '#576c60' }}>
-                  Coverage: <strong>{selectedSoilRegion.states.join(', ')}</strong> • Soil Type: <strong>{selectedSoilRegion.soilType}</strong>
-                </p>
-              </div>
-
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '2rem', fontWeight: 900, color: '#123524' }}>
-                  {selectedSoilRegion.fertilityScore}
-                  <span style={{ fontSize: '0.9rem', color: '#688273' }}>/100</span>
-                </div>
-                <div style={{ fontSize: '0.74rem', color: '#10b981', fontWeight: 700 }}>
-                  Soil Health Index
-                </div>
-              </div>
-            </div>
-
-            {/* Nutrients Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '12px',
-              margin: '24px 0'
-            }}>
-              <div style={{ background: '#f8faf7', padding: '14px', borderRadius: '12px', border: '1px solid rgba(18, 53, 36, 0.08)' }}>
-                <span style={{ fontSize: '0.7rem', color: '#688273', fontWeight: 700 }}>NATURAL pH RANGE</span>
-                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#f59e0b', marginTop: '2px' }}>
-                  {selectedSoilRegion.ph}
-                </div>
-              </div>
-
-              <div style={{ background: '#f8faf7', padding: '14px', borderRadius: '12px', border: '1px solid rgba(18, 53, 36, 0.08)' }}>
-                <span style={{ fontSize: '0.7rem', color: '#688273', fontWeight: 700 }}>ORGANIC CARBON</span>
-                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#123524', marginTop: '2px' }}>
-                  {selectedSoilRegion.organicCarbon}
-                </div>
-              </div>
-
-              <div style={{ background: '#f8faf7', padding: '14px', borderRadius: '12px', border: '1px solid rgba(18, 53, 36, 0.08)' }}>
-                <span style={{ fontSize: '0.7rem', color: '#688273', fontWeight: 700 }}>NITROGEN (N) SATURATION</span>
-                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#123524', marginTop: '2px' }}>
-                  {selectedSoilRegion.nitrogen}
-                </div>
-              </div>
-
-              <div style={{ background: '#f8faf7', padding: '14px', borderRadius: '12px', border: '1px solid rgba(18, 53, 36, 0.08)' }}>
-                <span style={{ fontSize: '0.7rem', color: '#688273', fontWeight: 700 }}>POTASSIUM (K) & PHOSPHORUS (P)</span>
-                <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#123524', marginTop: '2px' }}>
-                  {selectedSoilRegion.potassium} / {selectedSoilRegion.phosphorus}
-                </div>
-              </div>
-            </div>
-
-            {/* Reclamation Guidelines */}
-            <div style={{
-              background: '#f4f8f5',
-              padding: '18px 20px',
-              borderRadius: '14px',
-              borderLeft: '4px solid #10b981'
-            }}>
-              <strong style={{ fontSize: '0.88rem', color: '#123524' }}>
-                ICAR Soil Health & Reclamation Protocols:
-              </strong>
-              <ul style={{ marginTop: '8px', paddingLeft: '20px', fontSize: '0.82rem', color: '#45594e', lineHeight: 1.6 }}>
-                {selectedSoilRegion.reclamationAdvice.map((adv, idx) => (
-                  <li key={idx}>{adv}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
   );
 }

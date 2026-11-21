@@ -1,5 +1,18 @@
 import os
+from pathlib import Path
 from pydantic import BaseModel
+from dotenv import load_dotenv
+
+# Ensure .env is loaded from both backend/.env and root .env
+backend_dir = Path(__file__).resolve().parent.parent
+root_dir = backend_dir.parent
+
+# Load backend/.env first, then root .env if present
+if (backend_dir / ".env").exists():
+    load_dotenv(dotenv_path=backend_dir / ".env", override=True)
+if (root_dir / ".env").exists():
+    load_dotenv(dotenv_path=root_dir / ".env", override=False)
+load_dotenv(override=False)
 
 class Settings(BaseModel):
     PROJECT_NAME: str = "Agri-Wise (Agrovia) API"
@@ -9,6 +22,12 @@ class Settings(BaseModel):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./agriwise.db")
+
+    # ElevenLabs Conversational AI & Voice Agent Settings
+    ELEVENLABS_API_KEY: str = os.getenv("ELEVENLABS_API_KEY", "elevenlabs_agriwise_voice_agent_key_ready")
+    ELEVENLABS_AGENT_ID: str = os.getenv("ELEVENLABS_AGENT_ID", "agent_agriwise_rakshak_multilingual")
+    ELEVENLABS_VOICE_ID: str = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")  # Rachel / Multilingual v2
+
     ALLOWED_ORIGINS: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

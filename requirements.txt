@@ -13,3 +13,5 @@ pillow==12.3.0
 requests==2.34.2
 joblib==1.6.0
 anyio==4.15.1
+elevenlabs>=2.0.0
+
