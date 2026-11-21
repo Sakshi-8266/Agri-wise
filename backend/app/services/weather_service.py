@@ -115,7 +115,7 @@ class WeatherIntelligenceService:
             })
 
         return advisories
-
+    
     def _fallback_weather(self, lat: float, lon: float, location_name: str) -> dict:
         base_temp = 27.8
         loc_lower = (location_name or "").lower()
@@ -139,6 +139,7 @@ class WeatherIntelligenceService:
     "rain_chance": p_prob,
     "condition": cond
 })
+            
 
         advisories = self._generate_advisories(base_temp, 68.0, 9.4, forecast, location_name)
         return {
