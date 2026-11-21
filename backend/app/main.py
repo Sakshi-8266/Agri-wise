@@ -40,10 +40,11 @@ app = FastAPI(
 )
 
 # CORS Middleware
+origins = list(settings.ALLOWED_ORIGINS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_origins=origins if "*" not in origins else ["*"],
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|https://.*\.vercel\.app|https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -78,12 +79,14 @@ def root():
 
 @app.get("/health")
 def health_check():
+    db_type = "postgresql" if "postgres" in settings.DATABASE_URL else "sqlite"
     return {
         "status": "healthy",
         "version": settings.VERSION,
-        "database": "sqlite_connected"
+        "database": f"{db_type}_connected"
     }
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.app.main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("backend.app.main:app", host="0.0.0.0", port=port, reload=True)

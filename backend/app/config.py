@@ -7,28 +7,22 @@ from dotenv import load_dotenv
 backend_dir = Path(__file__).resolve().parent.parent
 root_dir = backend_dir.parent
 
-# Load backend/.env first, then root .env if present
+# Load backend/.env first, then root .env if present (system/cloud env takes precedence)
 if (backend_dir / ".env").exists():
-    load_dotenv(dotenv_path=backend_dir / ".env", override=True)
+    load_dotenv(dotenv_path=backend_dir / ".env", override=False)
 if (root_dir / ".env").exists():
     load_dotenv(dotenv_path=root_dir / ".env", override=False)
 load_dotenv(override=False)
 
-class Settings(BaseModel):
-    PROJECT_NAME: str = "Agri-Wise (Agrovia) API"
-    VERSION: str = "1.0.0"
-    API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "agriwise-secret-key-production-ready-2026-super-secure")
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./agriwise.db")
+def get_database_url() -> str:
+    raw = os.getenv("DATABASE_URL", "sqlite:///./agriwise.db")
+    # Render PostgreSQL URLs start with postgres://, SQLAlchemy 2 requires postgresql://
+    if raw.startswith("postgres://"):
+        return raw.replace("postgres://", "postgresql://", 1)
+    return raw
 
-    # ElevenLabs Conversational AI & Voice Agent Settings
-    ELEVENLABS_API_KEY: str = os.getenv("ELEVENLABS_API_KEY", "elevenlabs_agriwise_voice_agent_key_ready")
-    ELEVENLABS_AGENT_ID: str = os.getenv("ELEVENLABS_AGENT_ID", "agent_agriwise_rakshak_multilingual")
-    ELEVENLABS_VOICE_ID: str = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")  # Rachel / Multilingual v2
-
-    ALLOWED_ORIGINS: list[str] = [
+def get_allowed_origins() -> list[str]:
+    origins = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
@@ -40,5 +34,28 @@ class Settings(BaseModel):
         "http://localhost:8001",
         "http://127.0.0.1:8001"
     ]
+    env_origins = os.getenv("ALLOWED_ORIGINS")
+    if env_origins:
+        for o in env_origins.split(","):
+            cleaned = o.strip()
+            if cleaned and cleaned not in origins:
+                origins.append(cleaned)
+    return origins
+
+class Settings(BaseModel):
+    PROJECT_NAME: str = "Agri-Wise (Agrovia) API"
+    VERSION: str = "1.0.0"
+    API_V1_STR: str = "/api/v1"
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "agriwise-secret-key-production-ready-2026-super-secure")
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    DATABASE_URL: str = get_database_url()
+
+    # ElevenLabs Conversational AI & Voice Agent Settings
+    ELEVENLABS_API_KEY: str = os.getenv("ELEVENLABS_API_KEY", "elevenlabs_agriwise_voice_agent_key_ready")
+    ELEVENLABS_AGENT_ID: str = os.getenv("ELEVENLABS_AGENT_ID", "agent_agriwise_rakshak_multilingual")
+    ELEVENLABS_VOICE_ID: str = os.getenv("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")  # Rachel / Multilingual v2
+
+    ALLOWED_ORIGINS: list[str] = get_allowed_origins()
 
 settings = Settings()

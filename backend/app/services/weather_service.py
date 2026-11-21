@@ -131,14 +131,14 @@ class WeatherIntelligenceService:
             cond = "Heavy Rain & Showers" if is_rain_day else ("Partly Cloudy" if i % 2 == 0 else "Sunny / Clear")
 
             forecast.append({
-    "day": d_obj.strftime("%a"),
-    "date": dates[i],
-    "temp_max": t_max[i] if i < len(t_max) else temp + 2,
-    "temp_min": t_min[i] if i < len(t_min) else temp - 4,
-    "precipitation_mm": p_val,
-    "rain_chance": p_prob,
-    "condition": cond
-})
+                "day": d_obj.strftime("%a"),
+                "date": dates[i],
+                "temp_max": t_max[i] if i < len(t_max) else temp + 2,
+                "temp_min": t_min[i] if i < len(t_min) else temp - 4,
+                "precipitation_mm": precip[i] if i < len(precip) else 0.0,
+                "rain_chance": precip_prob[i] if i < len(precip_prob) else 10,
+                "condition": "Rain" if (precip[i] if i < len(precip) else 0) > 2.0 else ("Partly Cloudy" if i % 2 == 0 else "Sunny")
+            })
             
         advisories = self._generate_advisories(base_temp, 68.0, 9.4, forecast, location_name)
         return {

@@ -1,4 +1,5 @@
-const API_BASE = '/api/v1';
+const RAW_BASE = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '').trim();
+const API_BASE = RAW_BASE ? `${RAW_BASE.replace(/\/+$/, '')}/api/v1` : '/api/v1';
 
 export const DEMO_ACCOUNTS = {
   Farmer: { email: 'farmer@agriwise.com', password: 'Farmer@123', label: 'Ramesh Patel (Farmer)', role: 'Farmer' },
@@ -50,15 +51,22 @@ export const api = {
         ...options,
         headers
       });
-    } catch {
-      // If relative API_BASE failed (e.g. dev server proxy issue), try direct backend fallback
-      try {
-        res = await fetch(`http://127.0.0.1:8001/api/v1${endpoint}`, {
-          ...options,
-          headers
-        });
-      } catch {
-        throw new Error('Backend server is unreachable (port 8001). Please start the backend server with `npm run backend` or `npm run dev`.');
+    } catch (fetchErr) {
+      // In local dev without env, if relative API_BASE failed, try direct backend fallback
+      const isLocalHost = typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+      if (!RAW_BASE && isLocalHost) {
+        try {
+          res = await fetch(`http://127.0.0.1:8001/api/v1${endpoint}`, {
+            ...options,
+            headers
+          });
+        } catch {
+          throw new Error('Backend server is unreachable (port 8001). Please verify your local backend server is running.');
+        }
+      } else {
+        throw new Error(fetchErr.message || 'Unable to connect to Agriwise backend API. Please check your internet connection or verify the backend service status.');
       }
     }
 
