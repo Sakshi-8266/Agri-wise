@@ -140,7 +140,6 @@ class WeatherIntelligenceService:
     "condition": cond
 })
             
-
         advisories = self._generate_advisories(base_temp, 68.0, 9.4, forecast, location_name)
         return {
             "location": location_name,
