@@ -1,4 +1,14 @@
 import os
+import sys
+from pathlib import Path
+
+# Ensure app directories are in sys.path
+backend_dir = Path(__file__).resolve().parent.parent
+root_dir = backend_dir.parent
+for p in (str(backend_dir), str(root_dir)):
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
@@ -22,14 +32,15 @@ from .routers.admin_router import router as admin_router
 from .routers.decision_support_router import router as decision_support_router
 from .routers.delivery_router import router as delivery_router
 
-# Initialize Database Schema
-Base.metadata.create_all(bind=engine)
-ensure_logistics_columns(engine)
-
-# Seed Database
-with SessionLocal() as db:
-    seed_database(db)
-    seed_delivery_data(db)
+# Initialize Database Schema safely
+try:
+    Base.metadata.create_all(bind=engine)
+    ensure_logistics_columns(engine)
+    with SessionLocal() as db:
+        seed_database(db)
+        seed_delivery_data(db)
+except Exception as db_init_err:
+    print(f"Notice: Database initialization notice: {db_init_err}")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -89,4 +100,4 @@ def health_check():
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run("backend.app.main:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=port)

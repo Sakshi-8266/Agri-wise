@@ -18,7 +18,19 @@ def get_database_url() -> str:
     raw = os.getenv("DATABASE_URL", "sqlite:///./agriwise.db")
     # Render PostgreSQL URLs start with postgres://, SQLAlchemy 2 requires postgresql://
     if raw.startswith("postgres://"):
-        return raw.replace("postgres://", "postgresql://", 1)
+        raw = raw.replace("postgres://", "postgresql://", 1)
+    
+    # If generic postgresql:// URL, verify if psycopg (v3) or psycopg2 is available
+    if raw.startswith("postgresql://") and not raw.startswith("postgresql+"):
+        try:
+            import psycopg2
+            return raw.replace("postgresql://", "postgresql+psycopg2://", 1)
+        except ImportError:
+            try:
+                import psycopg
+                return raw.replace("postgresql://", "postgresql+psycopg://", 1)
+            except ImportError:
+                pass
     return raw
 
 def get_allowed_origins() -> list[str]:
